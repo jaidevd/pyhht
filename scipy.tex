@@ -1,0 +1,134 @@
+% This is the source code for my presentation on pyhht at SciPy India 2011 held in Mumbai in Dec 2011
+
+\documentclass[xcolor=dvipsnames]{beamer}
+\usetheme{Warsaw}
+\usecolortheme[named=Blue]{structure}
+\usepackage{graphics}
+
+\title{pyhht: A Python Toolbox for the Hilbert-Huang Transform}
+\author{Jaidev Deshpande \\ deshpande.jaidev@gmail.com}
+\institute{VIIT, Pune}
+\date{December 5, 2011}
+
+
+\begin{document}	
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+
+
+\begin{frame}{Introduction - Why this talk?}
+\begin{itemize}
+\item Introducing HHT
+\item An additional view of nonlinear and nonstationary phenomena
+\item HHT is almost entirely algorithmic
+\item It needs more math
+\item I need an audience
+\end{itemize}
+\end{frame}
+
+%3
+\begin{frame}{Motivation for the HHT}
+\begin{itemize}
+\item What's the Hilbert Transform good for?
+\begin{enumerate}
+\item Analytical signals
+\item Instantanous frequency
+\end{enumerate}
+\item Meaningful representations of data
+\item A check against harmonics
+\item Feature extraction
+\end{itemize}
+\end{frame}
+
+%4
+\begin{frame}{The Hilbert-Huang Transform}
+\begin{itemize}
+\item HHT = Empirical Mode Decomposition + Hilbert Spectral Analysis
+\item EMD: breaks a wideband signal down into piecewise narrowband signals, called IMFs
+\item Intrinsic Mode Functions:
+\begin{enumerate}
+\item Well behaved Hilbert Transforms
+\item Piecewise stationary
+\item Almost purely AM/FM
+\end{enumerate}
+\end{itemize}
+\end{frame}
+
+%5
+\begin{frame}{Intrinsic Mode Functions}
+\begin{definition}
+A function is called an Intrinsic Mode Function if
+
+\begin{enumerate}
+\item the number of zero crossings and local extrema in the function differ at most by unity (takes care of localized oscillations)
+\item the local mean of the enevelopes described by the local maxima and the local minima is zero at all times (required for meaningful instantaneous frequencies)
+\end{enumerate}
+\end{definition}
+
+\end{frame}
+
+%6
+\begin{frame}{Empirical Mode Decomposition}
+\begin{enumerate}
+\item Find all local extrema in the signal
+\item Join the maxima and minima with separate cubic splines, creating an upper and a lower envelope
+\item Calculate the mean of the envelopes
+\item Subtract mean from original signal
+\item Repeat steps 1-4 until the result is an IMF
+\item Subtract this IMF from the original signal
+\item Repeat steps 1-6 till there are no more IMFs left in the signal
+\end{enumerate}
+\end{frame}
+%
+%%7
+\begin{frame}{Hilbert Spectral Analysis}
+Analytical signals from the IMFs:
+\begin{equation}
+z(t)=x(t)+i*y(t)
+\end{equation}
+Instantaneous phase can be calculated as:
+\begin{equation}
+\theta =  \tan ^{-1}  {\frac{y(t)}{x(t)}} 
+\end{equation}
+Instantaneous frequency, therefore:
+\begin{equation}
+\omega _{i}=\frac{d \theta}{dt}
+\end{equation}
+The original array is the real part of:
+\begin{equation}
+X(t)=\sum _{j=1} ^{N} x_{j}(t) \exp   (i\int \omega_{j} (t).dt)
+\end{equation}
+\end{frame}
+%
+%%8
+\begin{frame}{Comparison with Fourier and Wavelet}
+%\includegraphics[scale=0.3]{Screenshot}
+\end{frame}
+%
+%%9
+\begin{frame}{Heuristics for HHT}
+\begin{itemize}
+\item Stoppage criteria for sifting
+\item Screening tools for IMFs based on statistical moments, information theoretic measures, etc
+\item Alternatives to sifting like SVD, ICA
+\item Better interpolation schemes
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What Would be Awesome}
+\begin{itemize}
+\item Speeding it up
+\item A quantitative analysis of the EMD as a feature extraction, data compression method
+\item Use of wavelets as a handle on the HHT
+\item Establishing it as a veritable generalization of the Fourier method
+\end{itemize}
+\end{frame}
+%
+\begin{frame}
+Thank You
+\end{frame}
+
+\end{document}
