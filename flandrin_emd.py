@@ -143,9 +143,12 @@ def stop_sifting_fixe(t,m,INTERP,MODE_COMPLEX,ndirs=4):
     return stop, moyenne
 
 ################################################################################
-def mean_and_amplitude(m,t,INTERP,MODE_COMPLEX,ndirs=4):
+def mean_and_amplitude(m,t=None,INTERP='cubic',MODE_COMPLEX=1,ndirs=4):
     
     """ Computes the mean of the envelopes and the mode amplitudes."""
+    
+    if not t:
+        t = np.arange(len(m))
     
     NBSYM = 2
     if MODE_COMPLEX:
@@ -155,7 +158,7 @@ def mean_and_amplitude(m,t,INTERP,MODE_COMPLEX,ndirs=4):
             envmin = np.zeros((ndirs,len(t)))
             envmax = np.zeros((ndirs,len(t)))
             for k in range(ndirs):
-                phi = k*pi.ndirs
+                phi = k*pi/ndirs
                 y = np.real(np.exp(-1j*phi)*m)
                 indmin, indmax, indzer = extr(y)
                 nem.append(len(indmin)+len(indmax))
@@ -215,17 +218,34 @@ def mean_and_amplitude(m,t,INTERP,MODE_COMPLEX,ndirs=4):
 
 
 ################################################################################
-def stop_sifting_fixe_h():
-    pass
+def stop_sifting_fixe_h(m,stop_count,FIXE_H,MODE_COMPLEX=1,
+                        t=None,INTERP='cubic',ndirs=4):
+    if t is None:
+        t = np.arange(len(m))
+    try:
+        moyenne, nem, nzm = mean_and_amplitude(m,t, INTERP, MODE_COMPLEX, ndirs)[:3]
+        
+        if np.all(abs(nzm-nem)>1):
+            stop = 0
+            stop_count = 0
+        else:
+            stop_count += 1
+            stop = (stop_count == FIXE_H)
+    except:
+        moyenne = np.zeros((len(m)))
+        stop = 1
+    
+    return stop, moyenne, stop_count
+    
 
 ################################################################################
 def boundary_conditions(x, t=None, z=None, NBSYM=2):
     
     """ Generates mirrored extrema beyond the singal limits. """
 
-    if not t:
+    if t is None:
         t = np.arange(len(x))
-    if not z:
+    if z is None:
         z = x
     
     indmin, indmax = extr(x)[:2]
