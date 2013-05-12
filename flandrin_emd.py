@@ -1,6 +1,7 @@
 import numpy as np
 from math import pi
 from matplotlib.mlab import find
+from scipy.interpolate import splrep, splev
 
 ################################################################################
 def emd(**kwargs):
@@ -63,6 +64,7 @@ def extr(x,t=None):
     
     """ Extracts the indices of the extrema and zero crossings. """
     
+    
     m = len(x)
     if not t:
         t = np.arange(m)
@@ -85,6 +87,7 @@ def extr(x,t=None):
         indzer = np.sort([indzer,indz])
 
     d = np.diff(x)
+
     n = len(d)
     d1 = d[:n-1]
     d2 = d[1:n]
@@ -92,8 +95,8 @@ def extr(x,t=None):
     indmin = np.array(list(indmin)) + 1
     indmax = set(find(d1*d2<0)).intersection(find(d1>0))
     indmax = np.array(list(indmax)) + 1
-    
-    if any(d==0):
+
+    if np.any(d==0):
         imax = []
         imin = []
         bad = (d==0)
@@ -141,23 +144,74 @@ def stop_sifting_fixe(t,m,INTERP,MODE_COMPLEX,ndirs=4):
 
 ################################################################################
 def mean_and_amplitude(m,t,INTERP,MODE_COMPLEX,ndirs=4):
+    
+    """ Computes the mean of the envelopes and the mode amplitudes."""
+    
     NBSYM = 2
     if MODE_COMPLEX:
         if MODE_COMPLEX == 1:
             nem = []
             nzm = []
+            envmin = np.zeros((ndirs,len(t)))
+            envmax = np.zeros((ndirs,len(t)))
             for k in range(ndirs):
                 phi = k*pi.ndirs
                 y = np.real(np.exp(-1j*phi)*m)
                 indmin, indmax, indzer = extr(y)
                 nem.append(len(indmin)+len(indmax))
                 nzm.append(len(indzer))
-                tmin, tmax, zmin, zmax  = boundary_conditions(indmin, indmax, 
-                                                              t, y, m, NBSYM)
+                tmin, tmax, zmin, zmax  = boundary_conditions(y,t,m,NBSYM)
+                
+                f = splrep(tmin,zmin)
+                spl = splev(t,f)
+                envmin[k,:] = spl
+                
+                f = splrep(tmax,zmax)
+                spl = splev(t,f)
+                envmax[k,:] = spl
+            
+            envmoy = np.mean((envmin+envmax)/2,axis=0)
+            amp = np.mean(abs(envmax-envmin),axis=0)/2
+        
+        elif MODE_COMPLEX == 2:
+            nem = []
+            nzm = []
+            envmin = np.zeros((ndirs,len(t)))
+            envmax = np.zeros((ndirs,len(t)))
+            for k in range(ndirs):
+                phi = k*pi/ndirs
+                indmin, indmax, indzer = extr(y)
+                nem.append(len(indmin)+len(indmax))
+                nzm.append(len(indzer))
+                tmin, tmax, zmin, zmax = boundary_conditions(indmin, indmax, t,
+                                                             y, y, NBSYM)
+                f = splrep(tmin, zmin)
+                spl = splev(t,f)
+                envmin[k,:] = np.exp(1j*phi)*spl
+                
+                f = splrep(tmax, zmax)
+                spl = splev(t,f)
+                envmax[k,:] = np.exp(1j*phi)*spl
+            
+            envmoy = np.mean((envmin+envmax),axis=0)
+            amp = np.mean(abs(envmax-envmin),axis=0)/2
 
-
-
-
+        else:
+            indmin, indmax, indzer = extr(m)
+            nem = len(indmin)+len(indmax);
+            nzm = len(indzer);
+            tmin,tmax,mmin,mmax = boundary_conditions(indmin,indmax,t,m,m,NBSYM);
+            
+            f = splrep(tmin, mmax)
+            envmin = splev(t,f)
+            
+            f = splrep(tmax, mmax)
+            envmax = splev(t,f);
+            
+            envmoy = (envmin+envmax)/2;
+            amp = np.mean(abs(envmax-envmin),axis=0)/2
+    
+    return envmoy, nem, nzm, amp
 
 
 ################################################################################
