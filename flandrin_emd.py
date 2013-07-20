@@ -1,284 +1,431 @@
+import warnings
 import numpy as np
 from math import pi
 from matplotlib.mlab import find
+import matplotlib.pyplot as plt
 from scipy.interpolate import splrep, splev
 
-################################################################################
-def emd(**kwargs):
+
+class EMD(object):
     
-    # Typical usecase for a HasTraits subclass
-    MAXMODES     = kwargs.pop("MAXMODES",None)
-    k            = kwargs.pop("k",None)
-    mask         = kwargs.pop("mask",None)
-    r            = kwargs.pop("r",None)
-    FIXE         = kwargs.pop("FIXE",None)
-    t            = kwargs.pop("t",None)
-    INTERP       = kwargs.pop("INTERP",None)
-    MODE_COMPLEX = kwargs.pop("MODE_COMPLEX",None)
-    ndirs        = kwargs.pop("ndirs",None)
-    FIXE_H       = kwargs.pop("FIXE_H",None)
-    sd           = kwargs.pop("sd",None)
-    sd2          = kwargs.pop("sd2",None)
-    tol          = kwargs.pop("tol",None)
-    
-    A = stop_emd(r,MODE_COMPLEX=False)
-    B = (k<MAXMODES+1 or MAXMODES==0)
-    C = not np.any(mask)
-    
-    while not A and B and C:
+    def __init__(self,x,t=None,sd=0.05,sd2=0.5,tol=0.05,MODE_COMPLEX=None,
+                 ndirs=4,display_sifting=False,sdt=None,sd2t=None,r=None,
+                 imf=None,k=1,nbit=0,NbIt=0,FIXE=0,MAXITERATIONS=2000,
+                 FIXE_H=0,MAXMODES=0,INTERP='spline',mask=0):
         
-        m = r
-        mp = m.copy()
+        self.sd              = sd
+        self.sd2             = sd2
+        self.tol             = tol
+        self.display_sifting = display_sifting
+        self.MAXITERATIONS   = MAXITERATIONS
+        self.FIXE_H          = FIXE_H
+        self.ndirs           = ndirs
+        self.complex_version = 2
+        self.nbit            = nbit
+        self.Nbit            = NbIt
+        self.MAXMODES        = MAXMODES
+        self.k               = k
+        self.mask            = mask
+                
+        if x.ndim > 1:
+            if 1 not in x.shape:
+                raise TypeError("x must have only one row or one column.")
+        if x.shape[0]>1:
+            x = x.ravel()
+        if not np.all(np.isfinite(x)):
+            raise TypeError("All elements of x must be finite.")
+        self.x = x
+        self.ner = self.nzr = len(self.x)
+        self.r = self.x.copy()
+        
+        if t is None:
+            self.t = np.arange(np.max(x.shape))
+        else:
+            if t.shape != self.x.shape:
+                raise TypeError("t must have the same dimensions as x.")
+            if t.ndim > 1:
+                if 1 not in t.shape:
+                    raise TypeError("t must have only one column or one row.")
+            if not np.isreal(t):
+                raise TypeError("t must be a real vector.")
+            if t.shape[0]>1:
+                t = t.ravel()
+            self.t = t
+        
+        if INTERP not in ['linear','cubic','spline']:
+            raise TypeError("INTERP should be one of 'interp','cubic' or " +
+                            "'spline'")
+        self.INTERP = INTERP
+        
+        if sdt is None:
+            self.sdt = sd*np.ones((len(self.x),))
+        else:
+            self.sdt = sdt
+        
+        if sd2t is None:
+            self.sd2t = sd2*np.ones((len(self.x),))
+        else:
+            self.sd2t = sd2t
         
         if FIXE:
-            stop_sift, moyenne = stop_sifting_fixe(t,m,INTERP,MODE_COMPLEX,ndirs)
-        elif FIXE_H:
-            stop_count = 0
-            stop_sift, moyenne = stop_sifting_fixe_h(t,m,INTERP,stop_count,
-                                                   FIXE_H,MODE_COMPLEX, ndirs)
-        else:
-            stop_sift, moyenne = stop_sifting(m,t,sd,sd2,tol,INTERP,MODE_COMPLEX,
-                                              ndirs)
+            self.MAXITERATIONS = FIXE
+            if self.FIXE_H:
+                raise TypeError("Cannot use both FIXE and FIXE_H modes")
+        self.FIXE = FIXE
         
+        if MODE_COMPLEX is None:
+            MODE_COMPLEX = not(np.all(np.isreal(self.x)*self.complex_version))
+        self.MODE_COMPLEX = MODE_COMPLEX
+    
+        self.imf = []
+        self.nbits = []
+        
+        """ Masking not enabled because depends on the emd() method."""
+        #if np.any(mask):
+        #    if mask.shape != x.shape:
+        #        raise TypeError("Masking signal must have the same dimensions" +
+        #                        "as the input signal x.")
+        #    if mask.shape[0]>1:
+        #        mask = mask.ravel()
+        #    imf1 = emd(x+mask, opts)
 
-################################################################################
-def stop_emd(r, MODE_COMPLEX, ndirs=4):
-    
-    """ Tests if there are enough extrema (3) to continue sifting. """
-    
-    if MODE_COMPLEX:
-        ner = []
-        for k in range(ndirs):
-            phi = k*pi/ndirs
-            indmin, indmax = extr(np.real(np.exp(1j*phi)*r))[:2]
-            ner.append(len(indmin)+len(indmax))
-        stop = np.any(ner<3)
-    else:
-        indmin, indmax = extr(r)[:2]
-        ner = len(indmin) + len(indmax)
-        stop = ner < 3
-    return stop
+    def io(self):
+        n = len(self.imf)
+        s = 0
+        for i in range(n):
+            for j in range(n):
+                if i != j:
+                    s += np.abs(np.sum(self.imf[i]*np.conj(self.imf[j]))/np.sum(self.x**2))
+        return 0.5*s
 
-################################################################################
-def extr(x,t=None):
+    def boundary_conditions(self):
+        
+        """ Generates mirrored extrema beyond the singal limits. """
     
-    """ Extracts the indices of the extrema and zero crossings. """
-    
-    
-    m = len(x)
-    if not t:
-        t = np.arange(m)
-    
-    
-    x1 = x[:m-1]
-    x2 = x[1:m]
-    indzer = find(x1*x2<0)
-    if np.any(x==0):
-        iz = find(x==0)
-        indz = [];
-        if np.any(np.diff(iz)==1):
-            zer = x == 0
-            dz = np.diff([0,zer,0])
-            debz = find(dz == 1)
-            finz = find(dz == -1)-1
-            indz = np.round((debz+finz)/2)
-        else:
-            indz = iz
-        indzer = np.sort([indzer,indz])
+        NBSYM = 2
+        
+        indmin, indmax = self.extr()[:2]
+        
+        lmin = indmin[:NBSYM]
+        lmax = indmax[:NBSYM]
+        rmin = indmin[len(indmin)-NBSYM:]
+        rmax = indmax[len(indmax)-NBSYM:]
+        
+        lmin_extended = -1*lmin[::-1]
+        lmax_extended = -1*lmax[::-1]
+        rmin_extended = (len(self.x)-rmin)[::-1] - 1 + len(self.x)
+        rmax_extended = (len(self.x)-rmax)[::-1] - 1 + len(self.x)
+        
+        tmin = np.concatenate((lmin_extended,indmin,rmin_extended))
+        tmax = np.concatenate((lmax_extended,indmax,rmax_extended))
+        
+        zmin = self.x[indmin]
+        zmax = self.x[indmax]
+        
+        zmin_left = self.x[lmin][::-1]
+        zmax_left = self.x[lmax][::-1]
+        zmin_right = self.x[rmin][::-1]
+        zmax_right = self.x[rmax][::-1]
+        
+        zmin = np.concatenate((zmin_left, zmin, zmin_right))
+        zmax = np.concatenate((zmax_left, zmax, zmax_right))
+        
+        return tmin, tmax, zmin, zmax
 
-    d = np.diff(x)
+    
+    def extr(self, x):
+    
+        """ Extracts the indices of the extrema and zero crossings. """
+        
+        m = len(x)
 
-    n = len(d)
-    d1 = d[:n-1]
-    d2 = d[1:n]
-    indmin = set(find(d1*d2<0)).intersection(find(d1<0))
-    indmin = np.array(list(indmin)) + 1
-    indmax = set(find(d1*d2<0)).intersection(find(d1>0))
-    indmax = np.array(list(indmax)) + 1
-
-    if np.any(d==0):
-        imax = []
-        imin = []
-        bad = (d==0)
-        dd = np.diff([0,bad,0])
-        debs = find(dd == 1)
-        fins = find(dd == -1)
-        if debs[0] == 1:
-            if len(debs) > 1:
-                debs = debs[2:]
-                fins = fins[2:]
+        x1 = x[:m-1]
+        x2 = x[1:m]
+        indzer = find(x1*x2<0)
+        if np.any(x==0):
+            iz = find(x==0)
+            indz = [];
+            if np.any(np.diff(iz)==1):
+                zer = x == 0
+                dz = np.diff([0,zer,0])
+                debz = find(dz == 1)
+                finz = find(dz == -1)-1
+                indz = np.round((debz+finz)/2)
             else:
-                debs = []
-                fins = []
-        if len(debs) > 0:
-            if fins(len(fins)-1) == m:
-                if len(debs)>1:
-                    debs = debs[:len(debs)-1]
-                    fins = fins[:len(fins)-1]
+                indz = iz
+            indzer = np.sort([indzer,indz])
+    
+        d = np.diff(x)
+    
+        n = len(d)
+        d1 = d[:n-1]
+        d2 = d[1:n]
+        indmin = set(find(d1*d2<0)).intersection(find(d1<0))
+        indmin = np.array(list(indmin)) + 1
+        indmax = set(find(d1*d2<0)).intersection(find(d1>0))
+        indmax = np.array(list(indmax)) + 1
+    
+        if np.any(d==0):
+            imax = []
+            imin = []
+            bad = (d==0)
+            dd = np.diff([0,bad,0])
+            debs = find(dd == 1)
+            fins = find(dd == -1)
+            if debs[0] == 1:
+                if len(debs) > 1:
+                    debs = debs[2:]
+                    fins = fins[2:]
                 else:
                     debs = []
                     fins = []
-        lc = len(debs)
-        if lc > 0:
-            for k in range(lc):
-                if d[debs[k]-1]>0:
-                    if d[fins[k]] < 0:
-                        imax = [imax,np.round((fins[k]+debs[k])/2)]
+            if len(debs) > 0:
+                if fins(len(fins)-1) == m:
+                    if len(debs)>1:
+                        debs = debs[:len(debs)-1]
+                        fins = fins[:len(fins)-1]
+                    else:
+                        debs = []
+                        fins = []
+            lc = len(debs)
+            if lc > 0:
+                for k in range(lc):
+                    if d[debs[k]-1]>0:
+                        if d[fins[k]] < 0:
+                            imax = [imax,np.round((fins[k]+debs[k])/2)]
+                    else:
+                        if d[fins[k]]>- 0 :
+                            imin = [imin, np.round((fins[k]+debs[k])/2)]
+            
+            if len(imax)>0:
+                indmax = np.sort([indmax,imax])
+            if len(imin)>0:
+                indmin = np.sort([indmin, imin])
+        return indmin, indmax, indzer    
+    
+
+    def stop_EMD(self):
+        
+        """ Tests if there are enough extrema (3) to continue sifting. """
+        
+        if self.MODE_COMPLEX:
+            ner = []
+            for k in range(self.ndirs):
+                phi = k*pi/self.ndirs
+                indmin, indmax = self.extr(np.real(np.exp(1j*phi)*self.r))[:2]
+                ner.append(len(indmin)+len(indmax))
+            stop = np.any(ner<3)
+        else:
+            indmin, indmax = self.extr(self.r)[:2]
+            ner = len(indmin) + len(indmax)
+            stop = ner < 3
+        return stop
+
+    def mean_and_amplitude(self, m):
+        
+        """ Computes the mean of the envelopes and the mode amplitudes."""
+        
+        if self.MODE_COMPLEX:
+            if self.MODE_COMPLEX == 1:
+                nem = []
+                nzm = []
+                envmin = np.zeros((self.ndirs,len(self.t)))
+                envmax = np.zeros((self.ndirs,len(self.t)))
+                for k in range(self.ndirs):
+                    phi = k*pi/self.ndirs
+                    y = np.real(np.exp(-1j*phi)*m)
+                    indmin, indmax, indzer = self.extr(y)
+                    nem.append(len(indmin)+len(indmax))
+                    nzm.append(len(indzer))
+                    tmin, tmax, zmin, zmax  = self.boundary_conditions()
+                    
+                    f = splrep(tmin,zmin)
+                    spl = splev(self.t,f)
+                    envmin[k,:] = spl
+                    
+                    f = splrep(tmax,zmax)
+                    spl = splev(self.t,f)
+                    envmax[k,:] = spl
+                
+                envmoy = np.mean((envmin+envmax)/2,axis=0)
+                amp = np.mean(abs(envmax-envmin),axis=0)/2
+            
+            elif self.MODE_COMPLEX == 2:
+                nem = []
+                nzm = []
+                envmin = np.zeros((self.ndirs,len(self.t)))
+                envmax = np.zeros((self.ndirs,len(self.t)))
+                for k in range(self.ndirs):
+                    phi = k*pi/self.ndirs
+                    indmin, indmax, indzer = self.extr(y)
+                    nem.append(len(indmin)+len(indmax))
+                    nzm.append(len(indzer))
+                    tmin, tmax, zmin, zmax = self.boundary_conditions()
+                    f = splrep(tmin, zmin)
+                    spl = splev(self.t,f)
+                    envmin[k,:] = np.exp(1j*phi)*spl
+                    
+                    f = splrep(tmax, zmax)
+                    spl = splev(self.t,f)
+                    envmax[k,:] = np.exp(1j*phi)*spl
+                
+                envmoy = np.mean((envmin+envmax),axis=0)
+                amp = np.mean(abs(envmax-envmin),axis=0)/2
+    
+            else:
+                indmin, indmax, indzer = self.extr(m)
+                nem = len(indmin)+len(indmax);
+                nzm = len(indzer);
+                tmin,tmax,mmin,mmax = self.boundary_conditions();
+                
+                f = splrep(tmin, mmax)
+                envmin = splev(self.t,f)
+                
+                f = splrep(tmax, mmax)
+                envmax = splev(self.t,f);
+                
+                envmoy = (envmin+envmax)/2;
+                amp = np.mean(abs(envmax-envmin),axis=0)/2
+        
+        return envmoy, nem, nzm, amp
+
+    def stop_sifting(self, m):
+        try:
+            envmoy, nem, nzm, amp = self.mean_and_amplitude(m)
+            sx = np.abs(envmoy)/amp
+            s = np.mean(sx)
+            stop = not((np.mean(sx>self.sd)>self.tol | np.any(sx>self.sd2)) \
+                   and np.all(nem>2))
+            if not self.MODE_COMPLEX:
+                stop = stop and not(np.abs(nzm-nem)>1)
+        except:
+            stop = 1
+            envmoy = np.zeros((len(m),))
+            s = np.nan
+        return stop, envmoy, s
+    
+    def stop_sifting_fixe(self):
+        moyenne = self.mean_and_amplitude()
+        stop = 0
+        return stop, moyenne
+    
+    def stop_sifting_fixe_h(self, m):
+        try:
+            moyenne, nem, nzm = self.mean_and_amplitude(m)[:3]
+            
+            if np.all(abs(nzm-nem)>1):
+                stop = 0
+                stop_count = 0
+            else:
+                stop_count += 1
+                stop = (stop_count == self.FIXE_H)
+        except:
+            moyenne = np.zeros((len(m)))
+            stop = 1
+        
+        return stop, moyenne, stop_count
+
+    
+    def emd(self):
+        if self.display_sifting:
+            fig_h = plt.figure()
+        
+        A = not(self.stop_EMD())
+        B = (self.k<self.MAXMODES+1 or self.MAXMODES==0)
+        C = not(np.any(self.mask))
+        
+        while (A and B and C):
+            
+            # current mode
+            m = self.r
+            
+            # mode at previous iteration
+            mp = m.copy()
+            
+            # computing mean and stopping criterion
+            if self.FIXE:
+                stop_sift, moyenne = self.stop_sifting_fixe()
+            elif self.FIXE_H:
+                stop_count = 0
+                stop_sift, moyenne = self.stop_sifting_fixe_h()
+            else:
+                stop_sift, moyenne = self.stop_sifting(m)[:2]
+            
+            # in case current mode is small enough to cause spurious extrema
+            if np.max(np.abs(m)) < (1e-10)*np.max(np.abs(self.x)):
+                if not stop_sift:
+                    warnings.warn("EMD Warning: Amplitude too small, stopping.")
                 else:
-                    if d[fins[k]]>- 0 :
-                        imin = [imin, np.round((fins[k]+debs[k])/2)]
-        
-        if len(imax)>0:
-            indmax = np.sort([indmax,imax])
-        if len(imin)>0:
-            indmin = np.sort([indmin, imin])
-    
-    return indmin, indmax, indzer
-
-
-################################################################################
-def stop_sifting_fixe(t,m,INTERP,MODE_COMPLEX,ndirs=4):
-    moyenne = mean_and_amplitude(m,t,INTERP,MODE_COMPLEX,ndirs)
-    stop = 0
-    return stop, moyenne
-
-################################################################################
-def mean_and_amplitude(m,t=None,INTERP='cubic',MODE_COMPLEX=1,ndirs=4):
-    
-    """ Computes the mean of the envelopes and the mode amplitudes."""
-    
-    if not t:
-        t = np.arange(len(m))
-    
-    NBSYM = 2
-    if MODE_COMPLEX:
-        if MODE_COMPLEX == 1:
-            nem = []
-            nzm = []
-            envmin = np.zeros((ndirs,len(t)))
-            envmax = np.zeros((ndirs,len(t)))
-            for k in range(ndirs):
-                phi = k*pi/ndirs
-                y = np.real(np.exp(-1j*phi)*m)
-                indmin, indmax, indzer = extr(y)
-                nem.append(len(indmin)+len(indmax))
-                nzm.append(len(indzer))
-                tmin, tmax, zmin, zmax  = boundary_conditions(y,t,m,NBSYM)
+                    print "Force stopping EMD: amplitude too small."
+                return
+            
+            # SIFTING LOOP:
+            while not(stop_sift) and (self.nbit<self.MAXITERATIONS):
                 
-                f = splrep(tmin,zmin)
-                spl = splev(t,f)
-                envmin[k,:] = spl
+                if (not(self.MODE_COMPLEX) and (self.nbit>self.MAXITERATIONS/5) \
+                    and self.nbit%np.floor(self.MAXITERATIONS/10)==0 and \
+                    not(self.FIXE) and self.nbit > 100):
+                    print "Mode "+str(self.k) + ", Iteration " + str(self.nbit)
+                    im, iM = self.extr(m)
+                    print str(np.sum(m[im]>0)) + " minima > 0; " + \
+                          str(np.sum(m[im]<0)) + " maxima < 0."
                 
-                f = splrep(tmax,zmax)
-                spl = splev(t,f)
-                envmax[k,:] = spl
-            
-            envmoy = np.mean((envmin+envmax)/2,axis=0)
-            amp = np.mean(abs(envmax-envmin),axis=0)/2
-        
-        elif MODE_COMPLEX == 2:
-            nem = []
-            nzm = []
-            envmin = np.zeros((ndirs,len(t)))
-            envmax = np.zeros((ndirs,len(t)))
-            for k in range(ndirs):
-                phi = k*pi/ndirs
-                indmin, indmax, indzer = extr(y)
-                nem.append(len(indmin)+len(indmax))
-                nzm.append(len(indzer))
-                tmin, tmax, zmin, zmax = boundary_conditions(indmin, indmax, t,
-                                                             y, y, NBSYM)
-                f = splrep(tmin, zmin)
-                spl = splev(t,f)
-                envmin[k,:] = np.exp(1j*phi)*spl
+                # Sifting
+                m = m - moyenne
                 
-                f = splrep(tmax, zmax)
-                spl = splev(t,f)
-                envmax[k,:] = np.exp(1j*phi)*spl
+                # Computing mean and stopping criterion
+                if self.FIXE:
+                    stop_sift, moyenne = self.stop_sifting_fixe()
+                elif self.FIXE_H:
+                    stop_sift, moyenne, stop_count = self.stop_sifting_fixe_h()
+                else:
+                    stop_sift, moyenne, s = self.stop_sifting()
+                
+                # Display
+                if self.display_sifting and self.MODE_COMPLEX:
+                    indmin, indmax = self.extr(m)
+                    tmin, tmax, mmin, mmax = self.boundary_conditions()
+                    
+                    f = splrep(tmin,mmin)
+                    envminp = splev(self.t,f)
+                    f = splrep(tmax,mmax)
+                    envmaxp = splev(self.t,f)
+                    
+                    envmoyp = (envminp+envmaxp)/2;
+                    
+                    if self.FIXE or self.FIXE_H:
+                        self.display_emd_fixe(mp, envminp, envmaxp, envmoyp)
+                    else:
+                        sxp = 2*(np.abs(envmoyp))/np.abs(envmaxp-envminp)
+                        sp = np.mean(sxp)
+                        self.display_emd(mp, envminp, envmaxp, envmoyp, sp, sxp)
+                
+                mp = m
+                self.nbit += 1
+                self.NbIt += 1
+                
+                if (self.nbit==(self.MAXITERATIONS-1)) and not(self.FIXE) and (self.nbit>100):
+                    warnings.warn("Emd:warning, Forced stop of sifting - "+
+                                  "too many iterations")
             
-            envmoy = np.mean((envmin+envmax),axis=0)
-            amp = np.mean(abs(envmax-envmin),axis=0)/2
-
-        else:
-            indmin, indmax, indzer = extr(m)
-            nem = len(indmin)+len(indmax);
-            nzm = len(indzer);
-            tmin,tmax,mmin,mmax = boundary_conditions(indmin,indmax,t,m,m,NBSYM);
+            self.imf.append(m)
+            if self.display_sifting:
+                print "mode "+str(self.k)+ " stored"
             
-            f = splrep(tmin, mmax)
-            envmin = splev(t,f)
+            self.nbits.append(self.nbit)
+            self.k += 1
             
-            f = splrep(tmax, mmax)
-            envmax = splev(t,f);
+            self.r = self.r - m
+            ort = self.io()
             
-            envmoy = (envmin+envmax)/2;
-            amp = np.mean(abs(envmax-envmin),axis=0)/2
-    
-    return envmoy, nem, nzm, amp
+            self.ort = ort
+            return self.imf
 
-
-################################################################################
-def stop_sifting_fixe_h(m,stop_count,FIXE_H,MODE_COMPLEX=1,
-                        t=None,INTERP='cubic',ndirs=4):
-    if t is None:
-        t = np.arange(len(m))
-    try:
-        moyenne, nem, nzm = mean_and_amplitude(m,t, INTERP, MODE_COMPLEX, ndirs)[:3]
-        
-        if np.all(abs(nzm-nem)>1):
-            stop = 0
-            stop_count = 0
-        else:
-            stop_count += 1
-            stop = (stop_count == FIXE_H)
-    except:
-        moyenne = np.zeros((len(m)))
-        stop = 1
-    
-    return stop, moyenne, stop_count
-    
-
-################################################################################
-def boundary_conditions(x, t=None, z=None, NBSYM=2):
-    
-    """ Generates mirrored extrema beyond the singal limits. """
-
-    if t is None:
-        t = np.arange(len(x))
-    if z is None:
-        z = x
-    
-    indmin, indmax = extr(x)[:2]
-    
-    lmin = indmin[:NBSYM]
-    lmax = indmax[:NBSYM]
-    rmin = indmin[len(indmin)-NBSYM:]
-    rmax = indmax[len(indmax)-NBSYM:]
-    
-    lmin_extended = -1*lmin[::-1]
-    lmax_extended = -1*lmax[::-1]
-    rmin_extended = (len(x)-rmin)[::-1] - 1 + len(x)
-    rmax_extended = (len(x)-rmax)[::-1] - 1 + len(x)
-    
-    tmin = np.concatenate((lmin_extended,indmin,rmin_extended))
-    tmax = np.concatenate((lmax_extended,indmax,rmax_extended))
-    
-    zmin = x[indmin]
-    zmax = x[indmax]
-    
-    zmin_left = x[lmin][::-1]
-    zmax_left = x[lmax][::-1]
-    zmin_right = x[rmin][::-1]
-    zmax_right = x[rmax][::-1]
-    
-    zmin = np.concatenate((zmin_left, zmin, zmin_right))
-    zmax = np.concatenate((zmax_left, zmax, zmax_right))
-    
-    return tmin, tmax, zmin, zmax
-
-################################################################################
-def stop_sifting():
-    pass
-################################################################################
-def main():
-    pass
+if __name__ == "__main__":
+    x = np.random.random((1000,))
+    plt.subplot(311),plt.plot(x)
+    emd = EMD(x)
+    imf = emd.emd()[0]
+    plt.subplot(312),plt.plot(imf)
+    plt.subplot(313),plt.plot(x-imf)
+    plt.show()
