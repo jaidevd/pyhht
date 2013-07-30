@@ -1,3 +1,27 @@
+# -*- coding: utf-8 -*-
+#References
+#
+#
+# [1] N. E. Huang et al., "The empirical mode decomposition and the
+# Hilbert spectrum for non-linear and non stationary time series analysis",
+# Proc. Royal Soc. London A, Vol. 454, pp. 903-995, 1998
+#
+# [2] G. Rilling, P. Flandrin and P. Gonçalves
+# "On Empirical Mode Decomposition and its algorithms",
+# IEEE-EURASIP Workshop on Nonlinear Signal and Image Processing
+# NSIP-03, Grado (I), June 2003
+#
+# [3] G. Rilling, P. Flandrin, P. Gonçalves and J. M. Lilly.,
+# "Bivariate Empirical Mode Decomposition",
+# Signal Processing Letters (submitted)
+#
+# [4] N. E. Huang et al., "A confidence limit for the Empirical Mode
+# Decomposition and Hilbert spectral analysis",
+# Proc. Royal Soc. London A, Vol. 459, pp. 2317-2345, 2003
+#
+# [5] R. Deering and J. F. Kaiser, "The use of a masking signal to improve 
+# empirical mode decomposition", ICASSP 2005
+
 import warnings
 import numpy as np
 from math import pi
