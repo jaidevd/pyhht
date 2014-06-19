@@ -3,7 +3,8 @@ from EMD import emd
 
 __all__ = 'EEMD'
 
-def eemd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
+def eemd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2, 
+    n_noised_data=10, noise_variance=1.0):
     """
     Perform a Ensemble Empirical Mode Decomposition on a data set.
     
