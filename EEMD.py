@@ -1,5 +1,5 @@
 import numpy as np
-from scipy import interpolate
+from EMD import emd
 
 __all__ = 'EEMD'
 
@@ -29,7 +29,9 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
     shifiting_distance : float, optional
             Sets the minimum variance between IMF iterations.
             Default : 0.2
-    
+    noise_variance : float, optional
+            Sets the variance of white noise added on original signal.
+            Default : 1
     Returns
     -------
     IMFs : ndarray
