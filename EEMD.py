@@ -29,6 +29,9 @@ def eemd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
     shifiting_distance : float, optional
             Sets the minimum variance between IMF iterations.
             Default : 0.2
+    n_noised_data : int, optional
+            Sets the number of noised data generated.
+            Default : 10
     noise_variance : float, optional
             Sets the variance of white noise added on original signal.
             Default : 1
@@ -48,4 +51,10 @@ def eemd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
     Advances in Adaptive Data Analysis 01, 1-41
     """
 
-    return
+    white_noises = np.random.normal(0.0, noise_variance, 
+        (n_noised_data, len(data)))
+    noised_datas = data + white_noises
+    IMFss = np.apply_along_axis(emd, 1, noised_datas, 
+        [extrapolation, nimfs, shifting_distance])
+    IMFs = np.mean(IMFss, 0)
+    return IMFs
