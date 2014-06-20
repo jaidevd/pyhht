@@ -103,24 +103,47 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
         sd = 1.
         finish = False
                     
-        while sd > shifting_distance and not(finish):   
-            min_env = np.zeros(base)
-            max_env = min_env.copy()
-            
-            min_env = np.logical_and(
-                                np.r_[True, signals[1:,0] > signals[:-1,0]],
-                                np.r_[signals[:-1,0] > signals[1:,0], True])
-            max_env = np.logical_and(
-                                np.r_[True, signals[1:,0] < signals[:-1,0]],
-                                np.r_[signals[:-1,0] < signals[1:,0], True])
-            max_env[0] = max_env[-1] = False
-            min_env = min_env.nonzero()[0]
-            max_env = max_env.nonzero()[0] 
+        while sd > shifting_distance and not(finish):
+            ### code commented by t3476 ### start   
+            ## min_env = np.zeros(base)
+            ## max_env = min_env.copy()
+            ##
+            ## min_env = np.logical_and(
+            ##                    np.r_[True, signals[1:,0] > signals[:-1,0]],
+            ##                    np.r_[signals[:-1,0] > signals[1:,0], True])
+            ## max_env = np.logical_and(
+            ##                    np.r_[True, signals[1:,0] < signals[:-1,0]],
+            ##                    np.r_[signals[:-1,0] < signals[1:,0], True])
+            ## max_env[0] = max_env[-1] = False
+            ## min_env = min_env.nonzero()[0]
+            ## max_env = max_env.nonzero()[0] 
+            ### code commented by t3476 ### end
 
             #Cubic Spline by default
             order_max = 3
             order_min = 3
+
+            ### new code by t3476 ### start
+            min_env = np.array([])
+            max_env = np.array([])
+
+            #Interpolate raw data
+            order_signals = 3
+            spl_signals = interpolate.splrep(range(0,len(signals)), signals,
+                                             k=order_signals, per=inter_per)
+
+            #Get extrema points on x axis and calculate 2nd derivatives
+            extrema_x = interpolate.sproot(interpolate.splder(spl_signals, n=1))
+            extrema_y_der2 = interpolate.splev(extrema_x, spl_signals, der=2)
             
+            #classify extrema points by whether it's maximum or minimun
+            for k in range(0,len(extrema_x)):
+                if extrema_y_der2[k] > 0:
+                    np.append(min_env, extrema_x[k])
+                else:
+                    np.append(max_env, extrema_x[k])
+            ### new code by t3476 ### end
+
             if len(min_env) < 2 or len(max_env) < 2:
                 #If this IMF has become a straight line
                 finish = True
@@ -135,16 +158,33 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
 # Mirror Method requires per flag = 1 No extrapolation requires per flag = 0
 # This is set in intial setup at top of function.
 #==============================================================================
-                t = interpolate.splrep(min_env, signals[min_env,0],
+
+            ### code commented by t3476 ### start
+            ##    t = interpolate.splrep(min_env, signals[min_env,0],
+            ##                           k=order_min, per=inter_per)
+            ##    top = interpolate.splev(
+            ##                        np.arange(len(signals[:,0])), t)
+            ##    
+            ##    b = interpolate.splrep(max_env, signals[max_env,0],
+            ##                           k=order_max, per=inter_per)
+            ##    bot = interpolate.splev(
+            ##                        np.arange(len(signals[:,0])), b)
+            ### code commented by t3476 ### end
+
+            ### new code by t3476 ### start
+                t = interpolate.splrep(min_env, interpolate.splev(min_env, spl_signals),
                                        k=order_min, per=inter_per)
                 top = interpolate.splev(
                                     np.arange(len(signals[:,0])), t)
-                
-                b = interpolate.splrep(max_env, signals[max_env,0],
+
+                b = interpolate.splrep(max_env, interpolate.splev(max_env, spl_signals),
                                        k=order_max, per=inter_per)
                 bot = interpolate.splev(
                                     np.arange(len(signals[:,0])), b)
-                
+
+            ### new code by t3476 ### end
+
+
             #Calculate the Mean and remove from the data set.
             mean = (top + bot)/2
             signals[:,1] = signals[:,0] - mean
