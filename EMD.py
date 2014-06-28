@@ -104,7 +104,7 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
         finish = False
                     
         while sd > shifting_distance and not(finish):   
-            x_dis   = np.r_[range(0,base)]
+            all_dis   = np.r_[range(0,base)]
             min_dis = np.zeros(base)
             max_dis = min_env.copy()
             
@@ -123,19 +123,19 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
             order_min = 3
             order_sig = 4
 
-            spl_sig = interpolate.splrep(x_dis, signals[:,0],
+            spl_sig = interpolate.splrep(all_dis, signals[:,0],
                                        k=order_sig, per=inter_per)
             x_max_env = np.empty(0)
             y_max_env = np.empty(0)
             for k in max_dis:
-                interval = x_dis[k-1:k+2]
+                interval = all_dis[k-1:k+2]
                 values = interpolate.splev(interval, spl_sig)
                 spl = interpolate.splrep(interval, values)
                 deriv = interpolate.splder(spl)
                 root = interpolate.sproot(deriv)
 
-                idx1 = np.where(root >= x_dis[k-1])[0]
-                idx2 = np.where(root <= x_dis[k+1])[0]
+                idx1 = np.where(root >= all_dis[k-1])[0]
+                idx2 = np.where(root <= all_dis[k+1])[0]
                 idx = np.intersect1d(idx1,idx2,True)
                 root = np.take(root,idx)
 
@@ -145,14 +145,14 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
             x_min_env = np.empty(0)
             y_min_env = np.empty(0)
             for k in min_dis:
-                interval = x_dis[k-1:k+2]
+                interval = all_dis[k-1:k+2]
                 values = interpolate.splev(interval, spl_sig)
                 spl = interpolate.splrep(interval, values)
                 deriv = interpolate.splder(spl)
                 root = interpolate.sproot(deriv)
 
-                idx1 = np.where(root >= x_dis[k-1])[0]
-                idx2 = np.where(root <= x_dis[k+1])[0]
+                idx1 = np.where(root >= all_dis[k-1])[0]
+                idx2 = np.where(root <= all_dis[k+1])[0]
                 idx = np.intersect1d(idx1,idx2,True)
                 root = np.take(root,idx)
 
@@ -183,7 +183,7 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
                                        k=order_max, per=inter_per)
                 bot = interpolate.splev(
                                     np.arange(len(signals[:,0])), b)
-                
+
             #Calculate the Mean and remove from the data set.
             mean = (top + bot)/2
             signals[:,1] = signals[:,0] - mean
