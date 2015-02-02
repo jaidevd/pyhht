@@ -6,16 +6,17 @@ To do:
 """
 import numpy as np
 from scipy import interpolate
+from scipy.signal import argrelmax, argrelmin
 
 __all__ = 'EMD'
 
 def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
     """
     Perform a Empirical Mode Decomposition on a data set.
-    
+
     This function will return an array of all the Imperical Mode Functions as 
     defined in [1]_, which can be used for further Hilbert Spectral Analysis.
-    
+
     The EMD uses a spline interpolation function to approcimate the upper and 
     lower envelopes of the signal, this routine implements a extrapolation
     routine as described in [2]_ as well as the standard spline routine.
@@ -91,8 +92,8 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
         base = len(signals) 
         data_length = len(data) # Data length is used in recovering input data
         #DO spline fitting with periodic bounds
-        inter_per = 1 
-        
+        inter_per = 1
+
     else:
         raise Exception(
         "Please Specifiy extrapolation keyword as None or 'mirror'")
@@ -189,3 +190,30 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
                 "Please Specifiy extrapolation keyword as None or 'mirror'")
             
     return IMFs[:,0:ncomp]
+
+
+def get_envelops(x, t=None):
+    """ Find the upper and lower envelopes of the array `x`.
+    """
+    if t is None:
+        t = np.arange(x.shape[0])
+    maxima = argrelmax(x)[0]
+    minima = argrelmin(x)[0]
+    
+    # consider the start and end to be extrema
+    
+    ext_maxima = np.zeros((maxima.shape[0] + 2,), dtype=int)
+    ext_maxima[1:-1] = maxima
+    ext_maxima[0] = 0
+    ext_maxima[-1] = t.shape[0] - 1
+
+    ext_minima = np.zeros((minima.shape[0] + 2,), dtype=int)
+    ext_minima[1:-1] = minima
+    ext_minima[0] = 0
+    ext_minima[-1] = t.shape[0] - 1
+
+    tck = interpolate.splrep(t[ext_maxima], x[ext_maxima])
+    upper = interpolate.splev(t, tck)
+    tck = interpolate.splrep(t[ext_minima], x[ext_minima])
+    lower = interpolate.splev(t, tck)
+    return upper, lower

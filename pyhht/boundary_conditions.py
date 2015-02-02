@@ -1,49 +1,51 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from flandrin_emd import extr
+from scipy.signal import argrelmax, argrelmin
+from scipy.interpolate import splrep, splev
 
-def boundary_conditions(x, t=None, z=None, NBSYM=2):
+
+def boundary_conditions(x, t=None):
     
     """ Generates mirrored extrema beyond the singal limits. """
+    return
 
-    if not t:
-        t = np.arange(len(x))
-    if not z:
-        z = x
-    
-    indmin, indmax = extr(x)[:2]
-    
-    lmin = indmin[:NBSYM]
-    lmax = indmax[:NBSYM]
-    rmin = indmin[len(indmin)-NBSYM:]
-    rmax = indmax[len(indmax)-NBSYM:]
-    
-    lmin_extended = -1*lmin[::-1]
-    lmax_extended = -1*lmax[::-1]
-    rmin_extended = (len(x)-rmin)[::-1] - 1 + len(x)
-    rmax_extended = (len(x)-rmax)[::-1] - 1 + len(x)
-    
-    tmin = np.concatenate((lmin_extended,indmin,rmin_extended))
-    tmax = np.concatenate((lmax_extended,indmax,rmax_extended))
-    
-    zmin = x[indmin]
-    zmax = x[indmax]
-    
-    zmin_left = x[lmin][::-1]
-    zmax_left = x[lmax][::-1]
-    zmin_right = x[rmin][::-1]
-    zmax_right = x[rmax][::-1]
-    
-    zmin = np.concatenate((zmin_left, zmin, zmin_right))
-    zmax = np.concatenate((zmax_left, zmax, zmax_right))
-    
-    return tmin, tmax, zmin, zmax
 
-if __name__ == "__main__":
-    x = np.random.randn(100)
-    indmin, indmax = extr(x)[:2]
-    plt.plot(x)
-    tmin, tmax, zmin, zmax = boundary_conditions(x)
-    plt.plot(tmin, zmin, 'r.')
-    plt.plot(tmax, zmax, 'g.')
-    plt.show()
+ts = np.linspace(0, 1, 10000)
+f1, f2 = 5, 10
+y1 = np.sin(2*np.pi*f1*ts)
+y2 = np.sin(2*np.pi*f2*ts)
+y = y1 + y2
+
+
+# Maxima
+maxima = argrelmax(y)[0]
+ymax = y[maxima]
+
+left = ymax[:2][::-1]
+right = ymax[-2:][::-1]
+ymax_ext = np.hstack((left, ymax, right))
+
+tmax = ts[maxima]
+left = ts.min() - tmax[:2][::-1]
+right = 2 * ts.max() - tmax[-2:][::-1]
+tmax_ext = np.hstack((left, tmax, right))
+
+
+# Minima
+minima = argrelmin(y)[0]
+ymin = y[minima]
+
+left = ymin[:2][::-1]
+right = ymin[-2:][::-1]
+ymin_ext = np.hstack((left, ymin, right))
+
+tmin = ts[minima]
+left = ts.min() - tmin[:2][::-1]
+right = 2 * ts.max() - tmin[-2:][::-1]
+tmin_ext = np.hstack((left, tmin, right))
+
+
+# Interpolation
+
+plt.plot(ts, y, 'b', tmax_ext, ymax_ext, 'r.', tmin_ext, ymin_ext, 'g.')
+plt.show()
