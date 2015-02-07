@@ -518,10 +518,15 @@ def extr(x):
 
 
 if __name__ == "__main__":
-    x = np.random.random((1000,))
-    plt.subplot(311),plt.plot(x)
-    emd = EMD(x)
-    imf = emd.emd()[0]
-    plt.subplot(312),plt.plot(imf)
-    plt.subplot(313),plt.plot(x-imf)
+    Fs = 10000.0
+    ts = np.linspace(0, 1, Fs)
+    f1, f2 = 5, 10
+    y1 = np.sin(2*np.pi*f1*ts)
+    y2 = np.sin(2*np.pi*f2*ts)
+    y = y1 + y2
+    x = y
+    x += np.linspace(0, 1, x.shape[0])
+
+    plt.plot(x)
     plt.show()
+    emd = EMD(x)
