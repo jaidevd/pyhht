@@ -194,36 +194,3 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
     return IMFs[:,0:ncomp]
 
 
-def get_envelops(x, t=None):
-    """ Find the upper and lower envelopes of the array `x`.
-    """
-    if t is None:
-        t = np.arange(x.shape[0])
-    maxima = argrelmax(x)[0]
-    minima = argrelmin(x)[0]
-
-    # consider the start and end to be extrema
-
-    ext_maxima = np.zeros((maxima.shape[0] + 2,), dtype=int)
-    ext_maxima[1:-1] = maxima
-    ext_maxima[0] = 0
-    ext_maxima[-1] = t.shape[0] - 1
-
-    ext_minima = np.zeros((minima.shape[0] + 2,), dtype=int)
-    ext_minima[1:-1] = minima
-    ext_minima[0] = 0
-    ext_minima[-1] = t.shape[0] - 1
-
-    tck = interpolate.splrep(t[ext_maxima], x[ext_maxima])
-    upper = interpolate.splev(t, tck)
-    tck = interpolate.splrep(t[ext_minima], x[ext_minima])
-    lower = interpolate.splev(t, tck)
-    return upper, lower
-
-def plot_imfs(imfs, shape=None):
-    if shape is None:
-        shape = imfs.shape[1], 1
-    for i in range(imfs.shape[1]):
-        plt.subplot(shape[0], shape[1], i+1)
-        plt.plot(imfs[:,i])
-    plt.show()

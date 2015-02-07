@@ -5,7 +5,7 @@ from scipy.interpolate import splrep, splev
 
 
 def boundary_conditions(x, t=None):
-    
+
     """ Generates mirrored extrema beyond the singal limits. """
     return
 
@@ -61,4 +61,12 @@ bot_env = splev(_t_bot, tck)
 plt.plot(ts, y, 'b', tmax_ext, ymax_ext, 'r.', tmin_ext, ymin_ext, 'g.')
 plt.plot(_t_top, top_env, 'r-')
 plt.plot(_t_bot, bot_env, 'g-')
+plt.show()
+
+from EMD import emd
+
+imfs = emd(y)
+for i in range(imfs.shape[1]):
+    plt.subplot(imfs.shape[1], 1, i+1)
+    plt.plot(imfs[:,i])
 plt.show()
