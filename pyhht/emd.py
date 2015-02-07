@@ -611,7 +611,7 @@ class EMD(object):
             ort = self.io()
 
             self.ort = ort
-            return self.imf
+            return np.array(self.imf)
 
 
 
