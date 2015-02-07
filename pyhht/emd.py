@@ -518,7 +518,7 @@ class EMD(object):
         return stop, moyenne, stop_count
 
 
-    def emd(self):
+    def decompose(self):
         if self.display_sifting:
             fig_h = plt.figure()
 
