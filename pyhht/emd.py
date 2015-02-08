@@ -6,8 +6,8 @@ To do:
 """
 import numpy as np
 from numpy import pi
-from scipy import interpolate
 from scipy.interpolate import splrep, splev
+from scipy.signal import argrelmax, argrelmin
 import matplotlib.pyplot as plt
 from matplotlib.mlab import find
 import warnings
@@ -290,11 +290,10 @@ class EMD(object):
                     s += np.abs(np.sum(self.imf[i]*np.conj(self.imf[j]))/np.sum(self.x**2))
         return 0.5*s
 
-    def boundary_conditions(self):
+    def boundary_conditions(self, NBYSUM=2):
 
         """ Generates mirrored extrema beyond the singal limits. """
 
-        NBSYM = 2
 
         indmin, indmax = self.extr()[:2]
 
@@ -326,10 +325,10 @@ class EMD(object):
 
 
     def extr(self, x):
-
         """ Extracts the indices of the extrema and zero crossings. """
+        # FIXME: This doesn't have to be a method here.
+        m = x.shape[0]
 
-        m = len(x)
 
         x1 = x[:m-1]
         x2 = x[1:m]
@@ -347,52 +346,9 @@ class EMD(object):
                 indz = iz
             indzer = np.sort(np.hstack([indzer,indz]))
 
-        d = np.diff(x)
+        indmax = argrelmax(x)[0]
+        indmin = argrelmin(x)[0]
 
-        n = len(d)
-        d1 = d[:n-1]
-        d2 = d[1:n]
-        indmin = set(find(d1*d2<0)).intersection(find(d1<0))
-        indmin = np.array(list(indmin)) + 1
-        indmax = set(find(d1*d2<0)).intersection(find(d1>0))
-        indmax = np.array(list(indmax)) + 1
-
-        if np.any(d==0):
-            imax = []
-            imin = []
-            bad = (d==0)
-            dd = np.diff([0,bad,0])
-            debs = find(dd == 1)
-            fins = find(dd == -1)
-            if debs[0] == 1:
-                if len(debs) > 1:
-                    debs = debs[2:]
-                    fins = fins[2:]
-                else:
-                    debs = []
-                    fins = []
-            if len(debs) > 0:
-                if fins(len(fins)-1) == m:
-                    if len(debs)>1:
-                        debs = debs[:len(debs)-1]
-                        fins = fins[:len(fins)-1]
-                    else:
-                        debs = []
-                        fins = []
-            lc = len(debs)
-            if lc > 0:
-                for k in range(lc):
-                    if d[debs[k]-1]>0:
-                        if d[fins[k]] < 0:
-                            imax = [imax,np.round((fins[k]+debs[k])/2)]
-                    else:
-                        if d[fins[k]]>- 0 :
-                            imin = [imin, np.round((fins[k]+debs[k])/2)]
-
-            if len(imax)>0:
-                indmax = np.sort([indmax,imax])
-            if len(imin)>0:
-                indmin = np.sort([indmin, imin])
         return indmin, indmax, indzer
 
 
@@ -482,6 +438,7 @@ class EMD(object):
         return envmoy, nem, nzm, amp
 
     def stop_sifting(self, m):
+        # FIXME: needs the rest of the parameters to work on!!!
         try:
             envmoy, nem, nzm, amp = self.mean_and_amplitude(m)
             sx = np.abs(envmoy)/amp
@@ -541,7 +498,7 @@ class EMD(object):
                 stop_count = 0
                 stop_sift, moyenne = self.stop_sifting_fixe_h()
             else:
-                stop_sift, moyenne = self.stop_sifting(m)[:2]
+                stop_sift, moyenne, _ = self.stop_sifting(m)
 
             # in case current mode is small enough to cause spurious extrema
             if np.max(np.abs(m)) < (1e-10)*np.max(np.abs(self.x)):
