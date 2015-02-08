@@ -24,8 +24,7 @@ class TestUtils(unittest.TestCase):
         """
         Test if local extrema are detected properly.
         """
-        # FIXME: Don't use the fact that the data is a sine wave.
-        # Eg: Use the properties of immediate neighbours
+        # FIXME: Try tests on random data.
         indmin, indmax, _ = utils.extr(self.data)
         min_neighbours = np.zeros((indmin.shape[0], 2))
         max_neighbours = np.zeros((indmax.shape[0], 2))

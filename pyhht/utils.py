@@ -15,6 +15,7 @@ from matplotlib.mlab import find
 import numpy as np
 from scipy.signal import argrelmax, argrelmin
 
+
 def get_envelops(x, t=None):
     """ Find the upper and lower envelopes of the array `x`.
     """
