@@ -11,6 +11,7 @@ Utility functions used to inspect EMD functionality.
 """
 
 import matplotlib.pyplot as plt
+from matplotlib.mlab import find
 import numpy as np
 
 def get_envelops(x, t=None):

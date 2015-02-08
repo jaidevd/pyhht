@@ -323,12 +323,10 @@ class EMD(object):
 
         return tmin, tmax, zmin, zmax
 
-
     def extr(self, x):
         """ Extracts the indices of the extrema and zero crossings. """
         # FIXME: This doesn't have to be a method here.
         m = x.shape[0]
-
 
         x1 = x[:m-1]
         x2 = x[1:m]
@@ -350,7 +348,6 @@ class EMD(object):
         indmin = argrelmin(x)[0]
 
         return indmin, indmax, indzer
-
 
     def stop_EMD(self):
 
