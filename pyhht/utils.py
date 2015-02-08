@@ -51,7 +51,7 @@ def plot_imfs(imfs, shape=None):
     plt.show()
 
 
-def extr(self, x):
+def extr(x):
     """ Extracts the indices of the extrema and zero crossings. """
     # FIXME: This doesn't have to be a method here.
     m = x.shape[0]
