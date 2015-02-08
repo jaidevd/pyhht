@@ -11,6 +11,7 @@ from scipy.signal import argrelmax, argrelmin
 import matplotlib.pyplot as plt
 from matplotlib.mlab import find
 import warnings
+from utils import extr
 
 
 __all__ = 'EMD'
@@ -295,7 +296,7 @@ class EMD(object):
         """ Generates mirrored extrema beyond the singal limits. """
 
 
-        indmin, indmax = self.extr()[:2]
+        indmin, indmax, _ = extr(self.x)
 
         lmin = indmin[:NBSYM]
         lmax = indmax[:NBSYM]
@@ -357,11 +358,11 @@ class EMD(object):
             ner = []
             for k in range(self.ndirs):
                 phi = k*pi/self.ndirs
-                indmin, indmax = self.extr(np.real(np.exp(1j*phi)*self.r))[:2]
+                indmin, indmax, _ = extr(np.real(np.exp(1j*phi)*self.r))
                 ner.append(len(indmin)+len(indmax))
             stop = np.any(ner<3)
         else:
-            indmin, indmax = self.extr(self.r)[:2]
+            indmin, indmax, _ = extr(self.r)
             ner = len(indmin) + len(indmax)
             stop = ner < 3
         return stop
@@ -379,7 +380,7 @@ class EMD(object):
                 for k in range(self.ndirs):
                     phi = k*pi/self.ndirs
                     y = np.real(np.exp(-1j*phi)*m)
-                    indmin, indmax, indzer = self.extr(y)
+                    indmin, indmax, indzer = extr(y)
                     nem.append(len(indmin)+len(indmax))
                     nzm.append(len(indzer))
                     tmin, tmax, zmin, zmax  = self.boundary_conditions()
@@ -402,7 +403,7 @@ class EMD(object):
                 envmax = np.zeros((self.ndirs,len(self.t)))
                 for k in range(self.ndirs):
                     phi = k*pi/self.ndirs
-                    indmin, indmax, indzer = self.extr(y)
+                    indmin, indmax, indzer = extr(y)
                     nem.append(len(indmin)+len(indmax))
                     nzm.append(len(indzer))
                     tmin, tmax, zmin, zmax = self.boundary_conditions()
@@ -418,7 +419,7 @@ class EMD(object):
                 amp = np.mean(abs(envmax-envmin),axis=0)/2
 
             else:
-                indmin, indmax, indzer = self.extr(m)
+                indmin, indmax, indzer = extr(m)
                 nem = len(indmin)+len(indmax);
                 nzm = len(indzer);
                 tmin,tmax,mmin,mmax = self.boundary_conditions();
@@ -512,7 +513,7 @@ class EMD(object):
                     and self.nbit%np.floor(self.MAXITERATIONS/10)==0 and \
                     not(self.FIXE) and self.nbit > 100):
                     print "Mode "+str(self.k) + ", Iteration " + str(self.nbit)
-                    im, iM = self.extr(m)
+                    im, iM, _ = extr(m)
                     print str(np.sum(m[im]>0)) + " minima > 0; " + \
                           str(np.sum(m[im]<0)) + " maxima < 0."
 
@@ -529,7 +530,7 @@ class EMD(object):
 
                 # Display
                 if self.display_sifting and self.MODE_COMPLEX:
-                    indmin, indmax = self.extr(m)
+                    indmin, indmax, _ = extr(m)
                     tmin, tmax, mmin, mmax = self.boundary_conditions()
 
                     f = splrep(tmin,mmin)
