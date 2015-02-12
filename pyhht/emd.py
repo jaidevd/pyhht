@@ -294,33 +294,6 @@ class EMD(object):
                     s += np.abs(np.sum(self.imf[i]*np.conj(self.imf[j]))/np.sum(self.x**2))
         return 0.5*s
 
-
-    def extr(self, x):
-        """ Extracts the indices of the extrema and zero crossings. """
-        # FIXME: This doesn't have to be a method here.
-        m = x.shape[0]
-
-        x1 = x[:m-1]
-        x2 = x[1:m]
-        indzer = find(x1 * x2 < 0)
-        if np.any(x == 0):
-            iz = find(x == 0)
-            indz = []
-            if np.any(np.diff(iz) == 1):
-                zer = x == 0
-                dz = np.diff([0, zer, 0])
-                debz = find(dz == 1)
-                finz = find(dz == -1) - 1
-                indz = np.round((debz + finz) / 2)
-            else:
-                indz = iz
-            indzer = np.sort(np.hstack([indzer, indz]))
-
-        indmax = argrelmax(x)[0]
-        indmin = argrelmin(x)[0]
-
-        return indmin, indmax, indzer
-
     def stop_EMD(self):
         """ Tests if there are enough extrema (3) to continue sifting. """
         if self.MODE_COMPLEX:
