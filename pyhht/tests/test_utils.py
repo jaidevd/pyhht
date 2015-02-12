@@ -18,32 +18,59 @@ import numpy as np
 class TestUtils(unittest.TestCase):
     def setUp(self):
         t = np.linspace(0, 1, 1000)
-        self.data = np.sin(2 * np.pi * 5 * t)
+        self.sinusoid = np.sin(2 * np.pi * 5 * t)
+        self.random_data = np.random.random((1000,))
 
-    def test_extrema(self):
+    def test_extrema_sinusoid(self):
         """
-        Test if local extrema are detected properly.
+        Test if local extrema are detected properly for a trended sinusoid.
         """
-        # FIXME: Try tests on random data.
-        indmin, indmax, _ = utils.extr(self.data)
+        indmin, indmax, _ = utils.extr(self.sinusoid)
         min_neighbours = np.zeros((indmin.shape[0], 2))
         max_neighbours = np.zeros((indmax.shape[0], 2))
-        min_neighbours[:, 0] = self.data[indmin - 1]
-        min_neighbours[:, 1] = self.data[indmin + 1]
-        max_neighbours[:, 0] = self.data[indmax - 1]
-        max_neighbours[:, 1] = self.data[indmax + 1]
-        minima = self.data[indmin].reshape(indmin.shape[0], 1)
+        min_neighbours[:, 0] = self.sinusoid[indmin - 1]
+        min_neighbours[:, 1] = self.sinusoid[indmin + 1]
+        max_neighbours[:, 0] = self.sinusoid[indmax - 1]
+        max_neighbours[:, 1] = self.sinusoid[indmax + 1]
+        minima = self.sinusoid[indmin].reshape(indmin.shape[0], 1)
         self.assertTrue(np.all(min_neighbours >= minima))
-        maxima = self.data[indmax].reshape(indmax.shape[0], 1)
+        maxima = self.sinusoid[indmax].reshape(indmax.shape[0], 1)
         self.assertTrue(np.all(max_neighbours <= maxima))
 
-    def test_zerocrossings(self):
+    def test_extrema_random(self):
         """
-        Test if the zero crossings are accurate.
+        Test if local extrema are detected properly for random data.
         """
-        _, _, indzer = utils.extr(self.data)
+        indmin, indmax, _ = utils.extr(self.random_data)
+        min_neighbours = np.zeros((indmin.shape[0], 2))
+        max_neighbours = np.zeros((indmax.shape[0], 2))
+        min_neighbours[:, 0] = self.random_data[indmin - 1]
+        min_neighbours[:, 1] = self.random_data[indmin + 1]
+        max_neighbours[:, 0] = self.random_data[indmax - 1]
+        max_neighbours[:, 1] = self.random_data[indmax + 1]
+        minima = self.random_data[indmin].reshape(indmin.shape[0], 1)
+        self.assertTrue(np.all(min_neighbours >= minima))
+        maxima = self.random_data[indmax].reshape(indmax.shape[0], 1)
+        self.assertTrue(np.all(max_neighbours <= maxima))
+
+    def test_zerocrossings_sinusoid(self):
+        """
+        Test if the zero crossings are accurate for a trended sinusoid.
+        """
+        _, _, indzer = utils.extr(self.sinusoid)
         neighbours = np.zeros((indzer.shape[0], 2))
-        neighbours[:, 0] = self.data[indzer - 1]
-        neighbours[:, 1] = self.data[indzer + 1]
+        neighbours[:, 0] = self.sinusoid[indzer - 1]
+        neighbours[:, 1] = self.sinusoid[indzer + 1]
+        p = np.prod(neighbours, axis=1)
+        self.assertTrue(np.all(p < 0))
+
+    def test_zerocrossings_random(self):
+        """
+        Test if the zero crossings are accurate for a trended sinusoid.
+        """
+        _, _, indzer = utils.extr(self.random_data)
+        neighbours = np.zeros((indzer.shape[0], 2))
+        neighbours[:, 0] = self.random_data[indzer - 1]
+        neighbours[:, 1] = self.random_data[indzer + 1]
         p = np.prod(neighbours, axis=1)
         self.assertTrue(np.all(p < 0))
