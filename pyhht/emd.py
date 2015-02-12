@@ -220,6 +220,8 @@ class EMD(object):
         self.k               = k
         self.mask            = mask
         self.nbsym           = nbsym
+        self.nbit = 0
+        self.NbIt = 0
 
         if x.ndim > 1:
             if 1 not in x.shape:
@@ -320,9 +322,7 @@ class EMD(object):
         return indmin, indmax, indzer
 
     def stop_EMD(self):
-
         """ Tests if there are enough extrema (3) to continue sifting. """
-
         if self.MODE_COMPLEX:
             ner = []
             for k in range(self.ndirs):
@@ -486,6 +486,7 @@ class EMD(object):
 
             # SIFTING LOOP:
             while not(stop_sift) and (self.nbit<self.MAXITERATIONS):
+                print "iteration {}".format(self.nbit)
 
                 if (not(self.MODE_COMPLEX) and (self.nbit>self.MAXITERATIONS/5) \
                     and self.nbit%np.floor(self.MAXITERATIONS/10)==0 and \
@@ -504,7 +505,7 @@ class EMD(object):
                 elif self.FIXE_H:
                     stop_sift, moyenne, stop_count = self.stop_sifting_fixe_h()
                 else:
-                    stop_sift, moyenne, s = self.stop_sifting()
+                    stop_sift, moyenne, s = self.stop_sifting(m)
 
                 # Display
                 if self.display_sifting and self.MODE_COMPLEX:

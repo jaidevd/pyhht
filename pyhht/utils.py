@@ -138,13 +138,12 @@ def plot_imfs(imfs, shape=None):
         shape = imfs.shape[1], 1
     for i in range(imfs.shape[1]):
         plt.subplot(shape[0], shape[1], i+1)
-        plt.plot(imfs[:,i])
+        plt.plot(imfs[:, i])
     plt.show()
 
 
 def extr(x):
     """ Extracts the indices of the extrema and zero crossings. """
-    # FIXME: This doesn't have to be a method here.
     m = x.shape[0]
 
     x1 = x[:m-1]
@@ -167,15 +166,3 @@ def extr(x):
     indmin = argrelmin(x)[0]
 
     return indmin, indmax, indzer
-
-
-def mean_amplitude(m,t=None,INTERP='spline',MODE_COMPLEX=False,ndirs=4):
-    """
-    Get the mean amplitude of the upper and lower envelops of `m`
-    Currently, MODE_COMPLEX=True and INTERP other than 'spline' are ignored.
-    """
-    # FIXME: Implement this for complex signals too.
-    if t is None:
-        t = np.arange(m.shape[0])
-
-
