@@ -11,7 +11,7 @@ from scipy.signal import argrelmax, argrelmin
 import matplotlib.pyplot as plt
 from matplotlib.mlab import find
 import warnings
-from utils import extr
+from utils import extr, boundary_conditions
 
 
 __all__ = 'EMD'
@@ -204,7 +204,7 @@ class EMD(object):
     def __init__(self,x,t=None,sd=0.05,sd2=0.5,tol=0.05,MODE_COMPLEX=None,
                  ndirs=4,display_sifting=False,sdt=None,sd2t=None,r=None,
                  imf=None,k=1,nbit=0,NbIt=0,FIXE=0,MAXITERATIONS=2000,
-                 FIXE_H=0,MAXMODES=0,INTERP='spline',mask=0):
+                 FIXE_H=0,MAXMODES=0,INTERP='spline',mask=0, nbsym=2):
 
         self.sd              = sd
         self.sd2             = sd2
@@ -219,6 +219,7 @@ class EMD(object):
         self.MAXMODES        = MAXMODES
         self.k               = k
         self.mask            = mask
+        self.nbsym           = nbsym
 
         if x.ndim > 1:
             if 1 not in x.shape:
@@ -291,38 +292,6 @@ class EMD(object):
                     s += np.abs(np.sum(self.imf[i]*np.conj(self.imf[j]))/np.sum(self.x**2))
         return 0.5*s
 
-    def boundary_conditions(self, NBSYM=2):
-
-        """ Generates mirrored extrema beyond the singal limits. """
-
-
-        indmin, indmax, _ = extr(self.x)
-
-        lmin = indmin[:NBSYM]
-        lmax = indmax[:NBSYM]
-        rmin = indmin[len(indmin)-NBSYM:]
-        rmax = indmax[len(indmax)-NBSYM:]
-
-        lmin_extended = -1*lmin[::-1]
-        lmax_extended = -1*lmax[::-1]
-        rmin_extended = (len(self.x)-rmin)[::-1] - 1 + len(self.x)
-        rmax_extended = (len(self.x)-rmax)[::-1] - 1 + len(self.x)
-
-        tmin = np.concatenate((lmin_extended,indmin,rmin_extended))
-        tmax = np.concatenate((lmax_extended,indmax,rmax_extended))
-
-        zmin = self.x[indmin]
-        zmax = self.x[indmax]
-
-        zmin_left = self.x[lmin][::-1]
-        zmax_left = self.x[lmax][::-1]
-        zmin_right = self.x[rmin][::-1]
-        zmax_right = self.x[rmax][::-1]
-
-        zmin = np.concatenate((zmin_left, zmin, zmin_right))
-        zmax = np.concatenate((zmax_left, zmax, zmax_right))
-
-        return tmin, tmax, zmin, zmax
 
     def extr(self, x):
         """ Extracts the indices of the extrema and zero crossings. """
@@ -383,7 +352,10 @@ class EMD(object):
                     indmin, indmax, indzer = extr(y)
                     nem.append(len(indmin)+len(indmax))
                     nzm.append(len(indzer))
-                    tmin, tmax, zmin, zmax  = self.boundary_conditions()
+                    tmin, tmax, zmin, zmax = boundary_conditions(indmin,
+                                                                 indmax,
+                                                                 self.t, y, m,
+                                                                 self.nbsym)
 
                     f = splrep(tmin,zmin)
                     spl = splev(self.t,f)
@@ -403,10 +375,14 @@ class EMD(object):
                 envmax = np.zeros((self.ndirs,len(self.t)))
                 for k in range(self.ndirs):
                     phi = k*pi/self.ndirs
+                    y = np.real(np.exp(-1j*phi)*m)
                     indmin, indmax, indzer = extr(y)
                     nem.append(len(indmin)+len(indmax))
                     nzm.append(len(indzer))
-                    tmin, tmax, zmin, zmax = self.boundary_conditions()
+                    tmin, tmax, zmin, zmax = boundary_conditions(indmin,
+                                                                 indmax,
+                                                                 self.t, y, m,
+                                                                 self.nbsym)
                     f = splrep(tmin, zmin)
                     spl = splev(self.t,f)
                     envmin[k,:] = np.exp(1j*phi)*spl
@@ -420,9 +396,11 @@ class EMD(object):
 
             else:
                 indmin, indmax, indzer = extr(m)
-                nem = len(indmin)+len(indmax);
-                nzm = len(indzer);
-                tmin,tmax,mmin,mmax = self.boundary_conditions();
+                nem = len(indmin)+len(indmax)
+                nzm = len(indzer)
+                tmin, tmax, zmin, zmax = boundary_conditions(indmin, indmax,
+                                                             self.t, m, m,
+                                                             self.nbsym)
 
                 f = splrep(tmin, mmax)
                 envmin = splev(self.t,f)
@@ -531,7 +509,11 @@ class EMD(object):
                 # Display
                 if self.display_sifting and self.MODE_COMPLEX:
                     indmin, indmax, _ = extr(m)
-                    tmin, tmax, mmin, mmax = self.boundary_conditions()
+                    tmin, tmax, mmin, mmax = boundary_conditions(indmin,
+                                                                 indmax,
+                                                                 self.t, mp,
+                                                                 mp,
+                                                                 self.nbsym)
 
                     f = splrep(tmin,mmin)
                     envminp = splev(self.t,f)
