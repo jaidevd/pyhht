@@ -414,16 +414,16 @@ class EMD(object):
         return envmoy, nem, nzm, amp
 
     def stop_sifting(self, m):
-        # FIXME: needs the rest of the parameters to work on!!!
         try:
             envmoy, nem, nzm, amp = self.mean_and_amplitude(m)
             sx = np.abs(envmoy)/amp
             s = np.mean(sx)
-            stop = not((np.mean(sx>self.sd)>self.tol | np.any(sx>self.sd2)) \
-                   and np.all(nem>2))
+            stop = not(((np.mean(sx > self.sd) > self.tol) or
+                        np.any(sx > self.sd2))
+                       and np.all(nem > 2))
             if not self.MODE_COMPLEX:
-                stop = stop and not(np.abs(nzm-nem)>1)
-        except:
+                stop = stop and not(np.abs(nzm - nem) > 1)
+        except Exception:
             stop = 1
             envmoy = np.zeros((len(m),))
             s = np.nan
