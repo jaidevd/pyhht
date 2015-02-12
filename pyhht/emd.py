@@ -240,7 +240,7 @@ class EMD(object):
             if t.ndim > 1:
                 if 1 not in t.shape:
                     raise TypeError("t must have only one column or one row.")
-            if not np.isreal(t):
+            if not np.all(np.isreal(t)):
                 raise TypeError("t must be a real vector.")
             if t.shape[0]>1:
                 t = t.ravel()
@@ -337,9 +337,9 @@ class EMD(object):
         return stop
 
     def mean_and_amplitude(self, m):
-
         """ Computes the mean of the envelopes and the mode amplitudes."""
-
+        # FIXME: The spline interpolation may not be identical with the MATLAB
+        # implementation. Needs further investigation.
         if self.MODE_COMPLEX:
             if self.MODE_COMPLEX == 1:
                 nem = []
@@ -394,22 +394,22 @@ class EMD(object):
                 envmoy = np.mean((envmin+envmax),axis=0)
                 amp = np.mean(abs(envmax-envmin),axis=0)/2
 
-            else:
-                indmin, indmax, indzer = extr(m)
-                nem = len(indmin)+len(indmax)
-                nzm = len(indzer)
-                tmin, tmax, zmin, zmax = boundary_conditions(indmin, indmax,
-                                                             self.t, m, m,
-                                                             self.nbsym)
+        else:
+            indmin, indmax, indzer = extr(m)
+            nem = len(indmin)+len(indmax)
+            nzm = len(indzer)
+            tmin, tmax, mmin, mmax = boundary_conditions(indmin, indmax,
+                                                         self.t, m, m,
+                                                         self.nbsym)
 
-                f = splrep(tmin, mmax)
-                envmin = splev(self.t,f)
+            f = splrep(tmin, mmin)
+            envmin = splev(self.t,f)
 
-                f = splrep(tmax, mmax)
-                envmax = splev(self.t,f);
+            f = splrep(tmax, mmax)
+            envmax = splev(self.t,f);
 
-                envmoy = (envmin+envmax)/2;
-                amp = np.mean(abs(envmax-envmin),axis=0)/2
+            envmoy = (envmin+envmax)/2;
+            amp = np.abs(envmax-envmin)/2.0
 
         return envmoy, nem, nzm, amp
 
