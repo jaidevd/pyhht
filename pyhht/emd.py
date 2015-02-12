@@ -291,7 +291,7 @@ class EMD(object):
                     s += np.abs(np.sum(self.imf[i]*np.conj(self.imf[j]))/np.sum(self.x**2))
         return 0.5*s
 
-    def boundary_conditions(self, NBYSUM=2):
+    def boundary_conditions(self, NBSYM=2):
 
         """ Generates mirrored extrema beyond the singal limits. """
 
