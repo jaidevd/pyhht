@@ -54,9 +54,10 @@ def boundary_conditions(indmin, indmax, t, x, z, nbsym):
             rmin = rmin[::-1]
             rsym = indmin[-1]
         else:
-            rmax = indmax[np.max(indmax.shape[0]-nbsym+1,1):indmax.shape[0]][::-1]
+            rmax = indmax[np.max(indmax.shape[0]-nbsym+1,
+                                 1):indmax.shape[0]][::-1]
             rmin = indmin[np.max([indmin.shape[0] - nbsym + 2,
-                1]):indmin.shape[0]][::-1]
+                                 1]):indmin.shape[0]][::-1]
             rmin = np.hstack([[lx], rmin])
             rsym = lx
 
@@ -66,7 +67,7 @@ def boundary_conditions(indmin, indmax, t, x, z, nbsym):
     trmax = 2 * t[rsym] - t[rmax]
 
     # In case symmetrized parts do not extend enough
-    if ( lmin[0] > t[0] ) or ( tlmax[0] > t[1] ):
+    if (lmin[0] > t[0]) or (tlmax[0] > t[1]):
         if lsym == indmax[0]:
             lmax = indmax[:np.min((indmax.shape[0], nbsym))][::-1]
         else:
@@ -80,12 +81,13 @@ def boundary_conditions(indmin, indmax, t, x, z, nbsym):
     if (trmin.shape[0] < t[lx - 1]) or (trmax.shape[0] < t[lx - 1]):
         if rsym == indmax.shape[0]:
             rmax = indmax[np.max([indmax.shape[0] - nbsym + 1,
-                1]):indmax.shape[0]][::-1]
+                                 1]):indmax.shape[0]][::-1]
         else:
             rmin = indmin[np.max([indmax.shape[0] - nbsym + 1,
-                1]):indmin.shape[0]][::-1]
+                                 1]):indmin.shape[0]][::-1]
 
-        if rsym == lx: raise Exception("bug")
+        if rsym == lx:
+            raise Exception("bug")
         rsym = lx
         trmin = 2 * t[rsym] - t[rmin]
         trmax = 2 * t[rsym] - t[rmax]
@@ -100,12 +102,10 @@ def boundary_conditions(indmin, indmax, t, x, z, nbsym):
     zmin = map(np.array, [zlmin, z[indmin], zrmin])
     zmax = map(np.array, [zlmax, z[indmax], zrmax])
 
-    tmin, tmax, zmin, zmax = map(np.hstack, [tmin, tmax, zmin, zmax ])
+    tmin, tmax, zmin, zmax = map(np.hstack, [tmin, tmax, zmin, zmax])
     return tmin, tmax, zmin, zmax
 
 
-
- 
 def get_envelops(x, t=None):
     """ Find the upper and lower envelopes of the array `x`.
     """
