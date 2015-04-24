@@ -74,3 +74,6 @@ class TestUtils(unittest.TestCase):
         neighbours[:, 1] = self.random_data[indzer + 1]
         p = np.prod(neighbours, axis=1)
         self.assertTrue(np.all(p < 0))
+
+if __name__ == '__main__':
+    unittest.main()
