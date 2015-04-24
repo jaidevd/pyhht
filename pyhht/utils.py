@@ -27,34 +27,34 @@ def boundary_conditions(indmin, indmax, t, x, z, nbsym):
 
     if indmax[0] < indmin[0]:
         if x[0] > x[indmin[0]]:
-            lmax = indmax[1:np.min([indmax.shape[0], nbsym+1])][::-1]
+            lmax = indmax[1:np.min([indmax.shape[0], nbsym + 1])][::-1]
             lmin = indmin[:np.min([indmin.shape[0], nbsym])][::-1]
             lsym = indmax[0]
         else:
             lmax = indmax[1:np.min([indmax.shape[0], nbsym])][::-1]
-            lmin = indmin[:np.min([indmin.shape[0], nbsym-1])][::-1]
+            lmin = indmin[:np.min([indmin.shape[0], nbsym - 1])][::-1]
             lmin = np.hstack((lmin, [1]))
             lsym = 1
     else:
         if x[0] < x[indmax[0]]:
             lmax = indmax[:np.min([indmax.shape[0], nbsym])][::-1]
-            lmin = indmin[1:np.min([indmin.shape[0], nbsym+1])][::-1]
+            lmin = indmin[1:np.min([indmin.shape[0], nbsym + 1])][::-1]
             lsym = indmin[0]
         else:
-            lmax = indmax[:np.min([indmin.shape[0], nbsym-1])][::-1]
+            lmax = indmax[:np.min([indmin.shape[0], nbsym - 1])][::-1]
             lmax = np.hstack((lmax, [1]))
             lmin = indmin[:np.min([indmax.shape[0], nbsym])][::-1]
             lsym = 1
 
     if indmax[-1] < indmin[-1]:
         if x[-1] < x[indmax[-1]]:
-            rmax = indmax[np.max([indmax.shape[0] - nbsym + 1, 1])-1:][::-1]
+            rmax = indmax[np.max([indmax.shape[0] - nbsym + 1, 1]) - 1:][::-1]
             rmin = indmin[np.max([indmin.shape[0] - nbsym,
-                                  1])-1:(indmin.shape[0]-1)]
+                                  1]) - 1:(indmin.shape[0] - 1)]
             rmin = rmin[::-1]
             rsym = indmin[-1]
         else:
-            rmax = indmax[np.max(indmax.shape[0]-nbsym+1,
+            rmax = indmax[np.max(indmax.shape[0] - nbsym + 1,
                                  1):indmax.shape[0]][::-1]
             rmin = indmin[np.max([indmin.shape[0] - nbsym + 2,
                                  1]):indmin.shape[0]][::-1]
@@ -137,7 +137,7 @@ def plot_imfs(imfs, shape=None):
     if shape is None:
         shape = imfs.shape[1], 1
     for i in range(imfs.shape[1]):
-        plt.subplot(shape[0], shape[1], i+1)
+        plt.subplot(shape[0], shape[1], i + 1)
         plt.plot(imfs[:, i])
     plt.show()
 
@@ -146,7 +146,7 @@ def extr(x):
     """ Extracts the indices of the extrema and zero crossings. """
     m = x.shape[0]
 
-    x1 = x[:m-1]
+    x1 = x[:m - 1]
     x2 = x[1:m]
     indzer = find(x1 * x2 < 0)
     if np.any(x == 0):
