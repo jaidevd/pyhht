@@ -1,1 +1,7 @@
-A Hilbert Haung Transform package, should perform EMD as well as generate a Hilbert Spectra.
+A Python module for the Hilbert Huang Transform.
+
+Dependencies:
+* NumPy
+* SciPy
+
+Please checkout the master branch for a stable version.
