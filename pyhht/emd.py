@@ -7,7 +7,6 @@ To do:
 import numpy as np
 from numpy import pi
 from scipy.interpolate import splrep, splev
-import matplotlib.pyplot as plt
 import warnings
 from utils import extr, boundary_conditions
 
@@ -36,7 +35,7 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
     :type extrapolation: str
     :type nimfs: int
     :type shifting_distance: float
-    :return: An array of shape (len(data), ) where N is the number of found IMFs
+    :return: An array of shape (len(data), ) where N is the number of IMFs
     :rtype: array_like
 
     References
@@ -147,8 +146,8 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
             # Calculate the shifting distance which is a measure of
             # simulartity to previous IMF
             if k > 0:
-                sd = (np.sum((np.abs(signals[:, 0] - signals[:, 1])**2))
-                             / (np.sum(signals[:, 0]**2)))
+                sd = (np.sum((np.abs(signals[:, 0] - signals[:, 1])**2)) /
+                      (np.sum(signals[:, 0]**2)))
 
             # Set new iteration as previous and loop
             signals = signals[:, ::-1]
@@ -156,7 +155,7 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
 
         if finish:
             # If IMF is a straight line we are done here.
-            IMFs[:, j]= residual
+            IMFs[:, j] = residual
             ncomp += 1
             break
 
@@ -168,17 +167,15 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
             ncomp += 1
 
         elif extrapolation == 'mirror':
-            IMFs[:, j] = signals[data_length / 2: data_length
-                                                           + data_length / 2, ]
+            IMFs[:, j] = signals[(data_length / 2): (data_length + data_length / 2), :]
             # For j==0 residual is initially data
             residual = residual - IMFs[:, j]
 
             # Mirror case requires IMF subtraction from data range then
             # re-mirroring for each IMF
             signals[0: data_length / 2, 0] = residual[::-1][data_length / 2:]
-            signals[data_length / 2:data_length + data_length / 2, 0] = residual
-            signals[data_length
-                + data_length / 2:, 0] = residual[::-1][0:data_length / 2]
+            signals[(data_length / 2): data_length + data_length / 2, 0] = residual
+            signals[data_length + data_length / 2:, 0] = residual[::-1][0:data_length / 2]
             ncomp += 1
 
         else:
@@ -190,24 +187,23 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
 
 class EMD(object):
 
-    def __init__(self, x, t=None, sd=0.05, sd2=0.5, tol=0.05, MODE_COMPLEX=None,
-                 ndirs=4, display_sifting=False, sdt=None, sd2t=None, r=None,
-                 imf=None, k=1, nbit=0, NbIt=0, FIXE=0, MAXITERATIONS=2000,
-                 FIXE_H=0, MAXMODES=0, INTERP='spline', mask=0, nbsym=2):
+    def __init__(self, x, t=None, sd=0.05, sd2=0.5, tol=0.05,
+                 is_mode_complex=None, ndirs=4, sdt=None, sd2t=None, r=None,
+                 k=1, nbit=0, NbIt=0, fixe=0, maxiter=2000,
+                 fixe_h=0, n_imfs=0, nbsym=2):  # mask=0,
 
         self.sd = sd
         self.sd2 = sd2
         self.tol = tol
-        self.display_sifting = display_sifting
-        self.MAXITERATIONS = MAXITERATIONS
-        self.FIXE_H = FIXE_H
+        self.maxiter = maxiter
+        self.fixe_h = fixe_h
         self.ndirs = ndirs
         self.complex_version = 2
         self.nbit = nbit
         self.Nbit = NbIt
-        self.MAXMODES = MAXMODES
+        self.n_imfs = n_imfs
         self.k = k
-        self.mask = mask
+        # self.mask = mask
         self.nbsym = nbsym
         self.nbit = 0
         self.NbIt = 0
@@ -221,7 +217,7 @@ class EMD(object):
             raise TypeError("All elements of x must be finite.")
         self.x = x
         self.ner = self.nzr = len(self.x)
-        self.r = self.x.copy()
+        self.residue = self.x.copy()
 
         if t is None:
             self.t = np.arange(np.max(x.shape))
@@ -237,42 +233,37 @@ class EMD(object):
                 t = t.ravel()
             self.t = t
 
-        if INTERP not in ['linear', 'cubic', 'spline']:
-            raise TypeError("INTERP should be one of 'interp', cubic' or " +
-                            "'spline'")
-        self.INTERP = INTERP
-
         if sdt is None:
             self.sdt = sd * np.ones((len(self.x),))
         else:
             self.sdt = sdt
 
         if sd2t is None:
-            self.sd2t = sd2t * np.ones((len(self.x),))
+            self.sd2t = sd2 * np.ones((len(self.x),))
         else:
             self.sd2t = sd2t
 
-        if FIXE:
-            self.MAXITERATIONS = FIXE
-            if self.FIXE_H:
-                raise TypeError("Cannot use both FIXE and FIXE_H modes")
-        self.FIXE = FIXE
+        if fixe:
+            self.maxiter = fixe
+            if self.fixe_h:
+                raise TypeError("Cannot use both fixe and fixe_h modes")
+        self.fixe = fixe
 
-        if MODE_COMPLEX is None:
-            MODE_COMPLEX = not(np.all(np.isreal(self.x) * self.complex_version))
-        self.MODE_COMPLEX = MODE_COMPLEX
+        if is_mode_complex is None:
+            is_mode_complex = not(np.all(np.isreal(self.x) * self.complex_version))
+        self.is_mode_complex = is_mode_complex
 
         self.imf = []
         self.nbits = []
 
-        """ Masking not enabled because depends on the emd() method."""
-        # if np.any(mask):
-        #     if mask.shape != x.shape:
-        #         raise TypeError("Masking signal must have the same dimensions" +
-        #                         "as the input signal x.")
-        #     if mask.shape[0]>1:
-        #         mask = mask.ravel()
-        #     imf1 = emd(x+mask, opts)
+        # FIXME: Masking disabled because it seems to be recursive.
+#        if np.any(mask):
+#            if mask.shape != x.shape:
+#                raise TypeError("Masking signal must have the same dimensions" +
+#                                "as the input signal x.")
+#            if mask.shape[0]>1:
+#                mask = mask.ravel()
+#            imf1 = emd(x+mask, opts)
 
     def io(self):
         n = len(self.imf)
@@ -285,15 +276,15 @@ class EMD(object):
 
     def stop_EMD(self):
         """ Tests if there are enough extrema (3) to continue sifting. """
-        if self.MODE_COMPLEX:
+        if self.is_mode_complex:
             ner = []
             for k in range(self.ndirs):
                 phi = k * pi / self.ndirs
-                indmin, indmax, _ = extr(np.real(np.exp(1j * phi) * self.r))
+                indmin, indmax, _ = extr(np.real(np.exp(1j * phi) * self.residue))
                 ner.append(len(indmin) + len(indmax))
             stop = np.any(ner < 3)
         else:
-            indmin, indmax, _ = extr(self.r)
+            indmin, indmax, _ = extr(self.residue)
             ner = len(indmin) + len(indmax)
             stop = ner < 3
         return stop
@@ -302,8 +293,8 @@ class EMD(object):
         """ Computes the mean of the envelopes and the mode amplitudes."""
         # FIXME: The spline interpolation may not be identical with the MATLAB
         # implementation. Needs further investigation.
-        if self.MODE_COMPLEX:
-            if self.MODE_COMPLEX == 1:
+        if self.is_mode_complex:
+            if self.is_mode_complex == 1:
                 nem = []
                 nzm = []
                 envmin = np.zeros((self.ndirs, len(self.t)))
@@ -327,10 +318,10 @@ class EMD(object):
                     spl = splev(self.t, f)
                     envmax[k, :] = spl
 
-                envmoy = np.mean((envmin+envmax) / 2, axis=0)
-                amp = np.mean(abs(envmax-envmin), axis=0)/2
+                envmoy = np.mean((envmin + envmax) / 2, axis=0)
+                amp = np.mean(abs(envmax - envmin), axis=0) / 2
 
-            elif self.MODE_COMPLEX == 2:
+            elif self.is_mode_complex == 2:
                 nem = []
                 nzm = []
                 envmin = np.zeros((self.ndirs, len(self.t)))
@@ -339,22 +330,22 @@ class EMD(object):
                     phi = k * pi / self.ndirs
                     y = np.real(np.exp(-1j * phi) * m)
                     indmin, indmax, indzer = extr(y)
-                    nem.append(len(indmin)+len(indmax))
+                    nem.append(len(indmin) + len(indmax))
                     nzm.append(len(indzer))
                     tmin, tmax, zmin, zmax = boundary_conditions(indmin,
                                                                  indmax,
                                                                  self.t, y, m,
                                                                  self.nbsym)
                     f = splrep(tmin, zmin)
-                    spl = splev(self.t,)
+                    spl = splev(self.t, f)
                     envmin[k, ] = np.exp(1j * phi) * spl
 
                     f = splrep(tmax, zmax)
-                    spl = splev(self.t, )
+                    spl = splev(self.t, f)
                     envmax[k, ] = np.exp(1j * phi) * spl
 
                 envmoy = np.mean((envmin + envmax), axis=0)
-                amp = np.mean(abs(envmax-envmin), axis=0) / 2
+                amp = np.mean(abs(envmax - envmin), axis=0) / 2
 
         else:
             indmin, indmax, indzer = extr(m)
@@ -365,10 +356,10 @@ class EMD(object):
                                                          self.nbsym)
 
             f = splrep(tmin, mmin)
-            envmin = splev(self.t,)
+            envmin = splev(self.t, f)
 
             f = splrep(tmax, mmax)
-            envmax = splev(self.t,)
+            envmax = splev(self.t, f)
 
             envmoy = (envmin + envmax) / 2
             amp = np.abs(envmax - envmin) / 2.0
@@ -376,62 +367,47 @@ class EMD(object):
         return envmoy, nem, nzm, amp
 
     def stop_sifting(self, m):
-        try:
+        if self.fixe:
+            stop_sift, moyenne = self.mean_and_amplitude(), 0
+        elif self.fixe_h:
+            stop_count = 0
+            try:
+                moyenne, nem, nzm = self.mean_and_amplitude(m)[:3]
+
+                if np.all(abs(nzm - nem) > 1):
+                    stop = 0
+                    stop_count = 0
+                else:
+                    stop_count += 1
+                    stop = (stop_count == self.fixe_h)
+            except:
+                moyenne = np.zeros((len(m)))
+                stop = 1
+            stop_sift = stop
+        else:
             envmoy, nem, nzm, amp = self.mean_and_amplitude(m)
             sx = np.abs(envmoy) / amp
-            s = np.mean(sx)
             stop = not(((np.mean(sx > self.sd) > self.tol) or
                         np.any(sx > self.sd2)) and np.all(nem > 2))
-            if not self.MODE_COMPLEX:
+            if not self.is_mode_complex:
                 stop = stop and not(np.abs(nzm - nem) > 1)
-        except Exception:
-            stop = 1
-            envmoy = np.zeros((len(m),))
-            s = np.nan
-        return stop, envmoy, s
+            stop_sift = stop
+            moyenne = envmoy
+        return stop_sift, moyenne
 
-    def stop_sifting_fixe(self):
-        moyenne = self.mean_and_amplitude()
-        stop = 0
-        return stop, moyenne
-
-    def stop_sifting_fixe_h(self, m):
-        try:
-            moyenne, nem, nzm = self.mean_and_amplitude(m)[:3]
-
-            if np.all(abs(nzm - nem) > 1):
-                stop = 0
-                stop_count = 0
-            else:
-                stop_count += 1
-                stop = (stop_count == self.FIXE_H)
-        except:
-            moyenne = np.zeros((len(m)))
-            stop = 1
-
-        return stop, moyenne, stop_count
+    def keep_decomposing(self):
+        return not(self.stop_EMD()) and \
+               (self.k < self.n_imfs + 1 or self.n_imfs == 0)  # and \
+# not(np.any(self.mask))
 
     def decompose(self):
-        A = not(self.stop_EMD())
-        B = (self.k < self.MAXMODES + 1 or self.MAXMODES == 0)
-        C = not(np.any(self.mask))
-
-        while (A and B and C):
+        while self.keep_decomposing():
 
             # current mode
-            m = self.r
-
-            # mode at previous iteration
-            mp = m.copy()
+            m = self.residue
 
             # computing mean and stopping criterion
-            if self.FIXE:
-                stop_sift, moyenne = self.stop_sifting_fixe()
-            elif self.FIXE_H:
-                stop_count = 0
-                stop_sift, moyenne = self.stop_sifting_fixe_h()
-            else:
-                stop_sift, moyenne, _ = self.stop_sifting(m)
+            stop_sift, moyenne = self.stop_sifting(m)
 
             # in case current mode is small enough to cause spurious extrema
             if np.max(np.abs(m)) < (1e-10) * np.max(np.abs(self.x)):
@@ -442,67 +418,42 @@ class EMD(object):
                 return
 
             # SIFTING LOOP:
-            while not(stop_sift) and (self.nbit < self.MAXITERATIONS):
+            while not(stop_sift) and (self.nbit < self.maxiter):
                 print "iteration {}".format(self.nbit)
 
-                if (not(self.MODE_COMPLEX) and (self.nbit > self.MAXITERATIONS / 5) \
-                    and self.nbit % np.floor(self.MAXITERATIONS / 10) == 0 and \
-                    not(self.FIXE) and self.nbit > 100):
+                if (not(self.is_mode_complex) and (self.nbit > self.maxiter / 5) and
+                        self.nbit % np.floor(self.maxiter / 10) == 0 and
+                        not(self.fixe) and self.nbit > 100):
                     print "Mode " + str(self.k) + ", Iteration " + str(self.nbit)
                     im, iM, _ = extr(m)
-                    print str(np.sum(m[im] > 0)) + " minima > 0; " + \
-                            str(np.sum(m[im] < 0)) + " maxima < 0."
+                    print str(np.sum(m[im] > 0)) + " minima > 0; " + str(np.sum(m[im] < 0)) + " maxima < 0."
 
                 # Sifting
                 m = m - moyenne
 
                 # Computing mean and stopping criterion
-                if self.FIXE:
+                if self.fixe:
                     stop_sift, moyenne = self.stop_sifting_fixe()
-                elif self.FIXE_H:
+                elif self.fixe_h:
                     stop_sift, moyenne, stop_count = self.stop_sifting_fixe_h()
                 else:
-                    stop_sift, moyenne, s = self.stop_sifting(m)
+                    stop_sift, moyenne = self.stop_sifting(m)
 
-                # Display
-                if self.display_sifting and self.MODE_COMPLEX:
-                    indmin, indmax, _ = extr(m)
-                    tmin, tmax, mmin, mmax = boundary_conditions(indmin,
-                                                                 indmax,
-                                                                 self.t, mp,
-                                                                 mp,
-                                                                 self.nbsym)
-
-                    f = splrep(tmin, tmin)
-                    envminp = splev(self.t,)
-                    f = splrep(tmax, tmax)
-                    envmaxp = splev(self.t, f)
-
-                    envmoyp = (envminp + envmaxp) / 2
-
-                    if self.FIXE or self.FIXE_H:
-                        self.display_emd_fixe(mp, envminp, envmaxp, envmoyp)
-                    else:
-                        sxp = 2 * (np.abs(envmoyp)) / np.abs(envmaxp - envminp)
-                        sp = np.mean(sxp)
-                        self.display_emd(mp, envminp, envmaxp, envmoyp, sp, sxp)
-
-                mp = m
                 self.nbit += 1
                 self.NbIt += 1
 
-                if (self.nbit == (self.MAXITERATIONS - 1)) and not(self.FIXE) and (self.nbit > 100):
+                if (self.nbit == (self.maxiter - 1)) and not(self.fixe) and (self.nbit > 100):
                     warnings.warn("Emd:warning, Forced stop of sifting - " +
                                   "too many iterations")
 
             self.imf.append(m)
-            if self.display_sifting:
-                print "mode " + str(self.k) + " stored"
 
             self.nbits.append(self.nbit)
             self.k += 1
 
-            self.r = self.r - m
+            self.residue = self.residue - m
             self.ort = self.io()
 
-            return np.array(self.imf)
+        if np.any(self.residue):
+            self.imf.append(self.residue)
+        return np.array(self.imf)

@@ -21,7 +21,7 @@ def boundary_conditions(indmin, indmax, t, x, z, nbsym):
     """
     Extend the signal beyond it's bounds w.r.t mirror symmetry.
     """
-    lx = x.shape[0]
+    lx = x.shape[0] - 1
     if indmin.shape[0] + indmax.shape[0] < 3:
         raise ValueError("Not enough extrema.")
 
@@ -48,17 +48,23 @@ def boundary_conditions(indmin, indmax, t, x, z, nbsym):
 
     if indmax[-1] < indmin[-1]:
         if x[-1] < x[indmax[-1]]:
-            rmax = indmax[np.max([indmax.shape[0] - nbsym + 1, 1]) - 1:][::-1]
-            rmin = indmin[np.max([indmin.shape[0] - nbsym,
-                                  1]) - 1:(indmin.shape[0] - 1)]
-            rmin = rmin[::-1]
+            rmax = indmax[(max([indmax.shape[0] - nbsym + 1, 1]) - 1):][::-1]
+            rmin = indmin[(max([indmin.shape[0] - nbsym, 1]) - 1):-1][::-1]
             rsym = indmin[-1]
         else:
-            rmax = indmax[np.max(indmax.shape[0] - nbsym + 1,
-                                 1):indmax.shape[0]][::-1]
-            rmin = indmin[np.max([indmin.shape[0] - nbsym + 2,
-                                 1]):indmin.shape[0]][::-1]
-            rmin = np.hstack([[lx], rmin])
+            rmax = indmax[max(indmax.shape[0] - nbsym + 1, 0):indmax.shape[0]][::-1]
+            rmax = np.hstack(([lx], rmax))
+            rmin = indmin[max(indmin.shape[0] - nbsym, 0):][::-1]
+            rsym = lx
+    else:
+        if x[-1] > x[indmin[-1]]:
+            rmax = indmax[max(indmax.shape[0] - nbsym - 1, 0):-1][::-1]
+            rmin = indmin[max(indmin.shape[0] - nbsym, 0):][::-1]
+            rsym = indmax[-1]
+        else:
+            rmax = indmax[max(indmax.shape[0] - nbsym, 0):][::-1]
+            rmin = indmin[max(indmin.shape[0] - nbsym + 1, 0):][::-1]
+            rmin = np.hstack(([lx], rmin))
             rsym = lx
 
     tlmin = 2 * t[lsym] - t[lmin]
@@ -67,7 +73,7 @@ def boundary_conditions(indmin, indmax, t, x, z, nbsym):
     trmax = 2 * t[rsym] - t[rmax]
 
     # In case symmetrized parts do not extend enough
-    if (lmin[0] > t[0]) or (tlmax[0] > t[1]):
+    if (tlmin[0] > t[0]) or (tlmax[0] > t[1]):
         if lsym == indmax[0]:
             lmax = indmax[:np.min((indmax.shape[0], nbsym))][::-1]
         else:
@@ -78,7 +84,7 @@ def boundary_conditions(indmin, indmax, t, x, z, nbsym):
         tlmin = 2 * t[lsym] - t[lmin]
         tlmax = 2 * t[lsym] - t[lmax]
 
-    if (trmin.shape[0] < t[lx - 1]) or (trmax.shape[0] < t[lx - 1]):
+    if (trmin[-1] < t[lx]) or (trmax[-1] < t[lx]):
         if rsym == indmax.shape[0]:
             rmax = indmax[np.max([indmax.shape[0] - nbsym + 1,
                                  1]):indmax.shape[0]][::-1]
