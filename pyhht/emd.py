@@ -419,7 +419,6 @@ class EMD(object):
 
             # SIFTING LOOP:
             while not(stop_sift) and (self.nbit < self.maxiter):
-                print "iteration {}".format(self.nbit)
 
                 if (not(self.is_mode_complex) and (self.nbit > self.maxiter / 5) and
                         self.nbit % np.floor(self.maxiter / 10) == 0 and
