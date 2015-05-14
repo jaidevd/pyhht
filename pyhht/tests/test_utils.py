@@ -21,6 +21,22 @@ class TestUtils(unittest.TestCase):
         self.sinusoid = np.sin(2 * np.pi * 5 * t)
         self.random_data = np.random.random((1000,))
 
+    def test_boundary_conditions(self):
+        x = np.ones((5,))
+        x[[0, 2, 4]] = -1
+        indmin = np.array([0, 2, 4])
+        indmax = np.array([1, 3])
+        t = np.arange(5)
+        z = x
+        tmin, tmax, zmin, zmax = utils.boundary_conditions(indmin, indmax, t, x,
+                z, 2)
+        self.assertEqual(zmin.sum(), -zmin.shape[0])
+        self.assertEqual(zmax.sum(), zmax.shape[0])
+        a = np.diff(tmin)
+        b = np.diff(tmax)
+        np.testing.assert_allclose(a, 2 * np.ones((a.shape[0])))
+        np.testing.assert_allclose(b, 2 * np.ones((b.shape[0])))
+
     def test_extrema_sinusoid(self):
         """
         Test if local extrema are detected properly for a trended sinusoid.
