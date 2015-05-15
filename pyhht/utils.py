@@ -10,7 +10,6 @@
 Utility functions used to inspect EMD functionality.
 """
 
-import matplotlib.pyplot as plt
 from matplotlib.mlab import find
 import numpy as np
 from scipy.signal import argrelmax, argrelmin
@@ -137,15 +136,6 @@ def get_envelops(x, t=None):
     tck = interpolate.splrep(t[ext_minima], x[ext_minima])
     lower = interpolate.splev(t, tck)
     return upper, lower
-
-
-def plot_imfs(imfs, shape=None):
-    if shape is None:
-        shape = imfs.shape[1], 1
-    for i in range(imfs.shape[1]):
-        plt.subplot(shape[0], shape[1], i + 1)
-        plt.plot(imfs[:, i])
-    plt.show()
 
 
 def extr(x):
