@@ -13,6 +13,7 @@
 import numpy as np
 from tftb.generators.api import fmsin, fmconst, amgauss
 from pyhht.emd import EMD
+from pyhht.visualization import plot_imfs
 
 
 N = 2000
@@ -42,5 +43,4 @@ x = x / np.max(np.abs(x))
 
 decomposer = EMD(x)
 imf = decomposer.decompose()
-
-from IPython import embed;embed()
+plot_imfs(x, t, imf)
