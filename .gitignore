@@ -55,3 +55,6 @@ target/
 
 # ignore vim swap files
 *.swp
+
+# Ignore ipython notebook checkpoints
+*.ipynb_checkpoints/*
