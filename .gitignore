@@ -57,4 +57,4 @@ target/
 *.swp
 
 # Ignore ipython notebook checkpoints
-*.ipynb_checkpoints/*
+*.ipynb_checkpoints/
