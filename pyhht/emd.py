@@ -305,9 +305,7 @@ class EMD(object):
                     indmin, indmax, indzer = extr(y)
                     nem.append(len(indmin) + len(indmax))
                     nzm.append(len(indzer))
-                    tmin, tmax, zmin, zmax = boundary_conditions(indmin,
-                                                                 indmax,
-                                                                 self.t, y, m,
+                    tmin, tmax, zmin, zmax = boundary_conditions(y, self.t, m,
                                                                  self.nbsym)
 
                     f = splrep(tmin, zmin)
@@ -332,9 +330,7 @@ class EMD(object):
                     indmin, indmax, indzer = extr(y)
                     nem.append(len(indmin) + len(indmax))
                     nzm.append(len(indzer))
-                    tmin, tmax, zmin, zmax = boundary_conditions(indmin,
-                                                                 indmax,
-                                                                 self.t, y, m,
+                    tmin, tmax, zmin, zmax = boundary_conditions(y, self.t, m,
                                                                  self.nbsym)
                     f = splrep(tmin, zmin)
                     spl = splev(self.t, f)
@@ -351,9 +347,7 @@ class EMD(object):
             indmin, indmax, indzer = extr(m)
             nem = len(indmin) + len(indmax)
             nzm = len(indzer)
-            tmin, tmax, mmin, mmax = boundary_conditions(indmin, indmax,
-                                                         self.t, m, m,
-                                                         self.nbsym)
+            tmin, tmax, mmin, mmax = boundary_conditions(m, self.t, m, self.nbsym)
 
             f = splrep(tmin, mmin)
             envmin = splev(self.t, f)

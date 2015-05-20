@@ -16,10 +16,12 @@ from scipy.signal import argrelmax, argrelmin
 from scipy import interpolate
 
 
-def boundary_conditions(indmin, indmax, t, x, z, nbsym):
+def boundary_conditions(x, t, z=None, nbsym=2):
     """
     Extend the signal beyond it's bounds w.r.t mirror symmetry.
     """
+    indmax = argrelmax(x)[0]
+    indmin = argrelmin(x)[0]
     lx = x.shape[0] - 1
     if indmin.shape[0] + indmax.shape[0] < 3:
         raise ValueError("Not enough extrema.")
@@ -97,6 +99,8 @@ def boundary_conditions(indmin, indmax, t, x, z, nbsym):
         trmin = 2 * t[rsym] - t[rmin]
         trmax = 2 * t[rsym] - t[rmax]
 
+    if z is None:
+        z = x
     zlmax = z[lmax]
     zlmin = z[lmin]
     zrmax = z[rmax]
