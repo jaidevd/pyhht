@@ -29,8 +29,6 @@ class TestUtils(unittest.TestCase):
         t = np.arange(7)
         z = x
         tmin, tmax, zmin, zmax = utils.boundary_conditions(x, t, z, 2)
-        from IPython.core.debugger import Tracer
-        Tracer()()
         self.assertEqual(zmin.sum(), -zmin.shape[0])
         self.assertEqual(zmax.sum(), zmax.shape[0])
         a = np.diff(tmin)
