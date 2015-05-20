@@ -22,14 +22,15 @@ class TestUtils(unittest.TestCase):
         self.random_data = np.random.random((1000,))
 
     def test_boundary_conditions(self):
-        x = np.ones((5,))
-        x[[0, 2, 4]] = -1
-        indmin = np.array([0, 2, 4])
-        indmax = np.array([1, 3])
-        t = np.arange(5)
+        x = np.ones((7,))
+        x[[1, 3, 5]] = -1
+        x[-1] = 0
+        x[0] = 0
+        t = np.arange(7)
         z = x
-        tmin, tmax, zmin, zmax = utils.boundary_conditions(indmin, indmax, t, x,
-                z, 2)
+        tmin, tmax, zmin, zmax = utils.boundary_conditions(x, t, z, 2)
+        from IPython.core.debugger import Tracer
+        Tracer()()
         self.assertEqual(zmin.sum(), -zmin.shape[0])
         self.assertEqual(zmax.sum(), zmax.shape[0])
         a = np.diff(tmin)
