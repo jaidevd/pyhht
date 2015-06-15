@@ -10,8 +10,9 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
-   pyhht
-   modules
+
+   apiref/pyhht
+   apiref/modules
 
 
 
