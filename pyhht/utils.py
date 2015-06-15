@@ -19,6 +19,19 @@ from scipy import interpolate
 def boundary_conditions(x, t, z=None, nbsym=2):
     """
     Extend the signal beyond it's bounds w.r.t mirror symmetry.
+
+    :param x: Signal to be mirrored.
+    :param t: Timestamps of the signal
+    :param z: Signal on whose extrema the interpolation is evaluated. (By \
+        default this is just ``x``)
+    :param nbsym: Number of points added to each end of the signal.
+    :type x: array-like
+    :type t: array-like
+    :type z: array-like
+    :type nbsym: int
+    :return: timestamps and values of extended extrema, ordered as (minima \
+        timestamps, maxima timestamps, minima values, maxima values.)
+    :rtype: tuple
     """
     indmax = argrelmax(x)[0]
     indmin = argrelmin(x)[0]
@@ -143,7 +156,13 @@ def get_envelops(x, t=None):
 
 
 def extr(x):
-    """ Extracts the indices of the extrema and zero crossings. """
+    """Extract the indices of the extrema and zero crossings.
+
+    :param x: input signal
+    :type x: array-like
+    :return: indices of minima, maxima and zero crossings.
+    :rtype: tuple
+    """
     m = x.shape[0]
 
     x1 = x[:m - 1]

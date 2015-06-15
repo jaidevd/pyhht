@@ -1,17 +1,18 @@
-"""
-To do:
-    Tests / Examples (same in some literature)
-    Instantaneous frequencies
-    Hilbert-Huang Transform
-"""
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim:fenc=utf-8
+#
+# Copyright © 2015 jaidev <jaidev@newton>
+#
+# Distributed under terms of the MIT license.
+
+"""Empirical Mode Decomposition."""
+
 import numpy as np
 from numpy import pi
-from scipy.interpolate import splrep, splev
 import warnings
+from scipy.interpolate import splrep, splev
 from utils import extr, boundary_conditions
-
-
-__all__ = 'EMD'
 
 
 def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
@@ -38,22 +39,20 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
     :return: An array of shape (len(data), ) where N is the number of IMFs
     :rtype: array_like
 
-    References
-    ----------
+    :References:
+
     .. [1] Huang H. et al. 1998 'The empirical mode decomposition and the \
             Hilbert spectrum for nonlinear and non-stationary time series \
-            analysis.'
-    Procedings of the Royal Society 454, 903-995
+            analysis.' \
+            Procedings of the Royal Society 454, 903-995
 
     .. [2] Zhao J., Huang D. 2001 'Mirror extending and circular spline \
-            function for empirical mode decomposition method'
-    Journal of Zhejiang University (Science) V.2, No.3, 247-252
+            function for empirical mode decomposition method'. \
+            Journal of Zhejiang University (Science) V.2, No.3, 247-252
 
     .. [3] Rato R.T., Ortigueira M.D., Batista A.G 2008 'On the HHT, its \
-            problems, and some solutions.'
-    Mechanical Systems and Signal Processing 22 1374-1394
-
-
+            problems, and some solutions.' \
+            Mechanical Systems and Signal Processing 22 1374-1394
     """
 
     # Set up signals array and IMFs array based on type of extrapolation
@@ -186,23 +185,71 @@ def emd(data, extrapolation='mirror', nimfs=12, shifting_distance=0.2):
 
 
 class EMD(object):
+    """The EMD class."""
 
-    def __init__(self, x, t=None, sd=0.05, sd2=0.5, tol=0.05,
-                 is_mode_complex=None, ndirs=4, sdt=None, sd2t=None, r=None,
-                 k=1, nbit=0, NbIt=0, fixe=0, maxiter=2000,
-                 fixe_h=0, n_imfs=0, nbsym=2):  # mask=0,
+    def __init__(self, x, t=None, threshold_1=0.05, threshold_2=0.5, alpha=0.05,
+                 is_mode_complex=None, ndirs=4, fixe=0, maxiter=2000,
+                 fixe_h=0, n_imfs=0, nbsym=2):
+        r"""Empirical mode decomposition.
 
-        self.sd = sd
-        self.sd2 = sd2
-        self.tol = tol
+        :param x: A vector on which to perform empirical mode decomposition.
+        :param t: Sampling time instants.
+        :param threshold_1: Threshold for the stopping criterion, corresponding to
+            :math:`\theta_{1}` in [1] (Default: 0.05)
+        :param threshold_2: Threshold for the stopping criterion, corresponding to
+            :math:`\theta_{2}` in [1] (Default: 0.5)
+        :param alpha: Tolerance for the stopping criterion, corresponding to
+            :math:`\alpha` in [1] (Default: 0.05)
+        :param is_mode_complex: Whether the input signal is complex.
+        :param ndirs: Number of directions in which envelopes are computed.
+            (Default: 4)
+        :param fixe: Number of sifting iterations to perform for each mode. The
+            default value is ``None``, in which case the default stopping criterion
+            is used. If not ``None``, each mode will be a result of exactly
+            ``fixe`` sifting iterations.
+        :param maxiter: Number of maximum sifting iterations for the
+            computation of each mode. (Default: 2000)
+        :param fixe_h:
+        :param n_imfs: Number if IMFs to extract.
+        :param nbsym: Number of points to mirror when calculating envelopes.
+        :type x: array-like
+        :type t: array-like
+        :type threshold_1: float
+        :type threshold_2: float
+        :type alpha: float
+        :type is_mode_complex: bool
+        :type ndirs: int
+        :type fixe: int
+        :type maxiter: int
+        :type fixe_h: int
+        :type n_imfs: int
+        :type nbsym: int
+        :return: Array of shape [n_imfs + 1, length(x)]
+        :rtype: numpy.ndarray
+        :Example:
+
+        >>> from pyhht.visualization import plot_imfs
+        >>> t = linspace(0, 1, 1000)
+        >>> modes = sin(2 * pi * 5 * t) + sin(2 * pi * 10 * t)
+        >>> x = modes + t
+        >>> decomposer = EMD(x)
+        >>> imfs = decomposer.decompose()
+        >>> plot_imfs(x, t, imfs)
+
+        .. plot:: ../../docs/examples/simple_emd.py
+        """
+
+        self.threshold_1 = threshold_1
+        self.threshold_2 = threshold_2
+        self.alpha = alpha
         self.maxiter = maxiter
         self.fixe_h = fixe_h
         self.ndirs = ndirs
         self.complex_version = 2
-        self.nbit = nbit
-        self.Nbit = NbIt
+        self.nbit = 0
+        self.Nbit = 0
         self.n_imfs = n_imfs
-        self.k = k
+        self.k = 1
         # self.mask = mask
         self.nbsym = nbsym
         self.nbit = 0
@@ -233,15 +280,8 @@ class EMD(object):
                 t = t.ravel()
             self.t = t
 
-        if sdt is None:
-            self.sdt = sd * np.ones((len(self.x),))
-        else:
-            self.sdt = sdt
-
-        if sd2t is None:
-            self.sd2t = sd2 * np.ones((len(self.x),))
-        else:
-            self.sd2t = sd2t
+        self.sdt = self.threshold_1 * np.ones((len(self.x),))
+        self.sd2t = self.threshold_2 * np.ones((len(self.x),))
 
         if fixe:
             self.maxiter = fixe
@@ -249,6 +289,9 @@ class EMD(object):
                 raise TypeError("Cannot use both fixe and fixe_h modes")
         self.fixe = fixe
 
+        # FIXME: `is_mode_complex` should be a boolean and self.complex_version
+        # should be a string for better readability. Also, the boolean should
+        # be redundant in the signature of __init__
         if is_mode_complex is None:
             is_mode_complex = not(np.all(np.isreal(self.x) * self.complex_version))
         self.is_mode_complex = is_mode_complex
@@ -266,6 +309,25 @@ class EMD(object):
 #            imf1 = emd(x+mask, opts)
 
     def io(self):
+        r"""Compute the index of orthoginality, as defined by:
+
+            .. math:: \sum_{i, j=1, i\neq j}^{N} \frac{\|C_{i}\overline{C_{j}}\|}{\|x\|^2}
+
+        Where :math:`C_{i}` is the :math:`i` th IMF.
+
+        :return: Index of orthogonality.
+        :rtype: float
+        :Example:
+
+        >>> t = linspace(0, 1, 1000)
+        >>> modes = sin(2 * pi * 5 * t) + sin(2 * pi * 10 * t)
+        >>> x = modes + t
+        >>> decomposer = EMD(x)
+        >>> decomposer.decompose()
+        >>> print decomposer.io()
+        0.0516420404972
+        """
+
         n = len(self.imf)
         s = 0
         for i in range(n):
@@ -275,7 +337,7 @@ class EMD(object):
         return 0.5 * s
 
     def stop_EMD(self):
-        """ Tests if there are enough extrema (3) to continue sifting. """
+        """Check if there are enough extrema (3) to continue sifting."""
         if self.is_mode_complex:
             ner = []
             for k in range(self.ndirs):
@@ -361,6 +423,12 @@ class EMD(object):
         return envmoy, nem, nzm, amp
 
     def stop_sifting(self, m):
+        """Evaluate the stopping criteria for the current mode.
+
+        :param m: The current mode
+        :type m: array-like
+        """
+        # FIXME: This method needs a better name.
         if self.fixe:
             stop_sift, moyenne = self.mean_and_amplitude(), 0
         elif self.fixe_h:
@@ -381,8 +449,8 @@ class EMD(object):
         else:
             envmoy, nem, nzm, amp = self.mean_and_amplitude(m)
             sx = np.abs(envmoy) / amp
-            stop = not(((np.mean(sx > self.sd) > self.tol) or
-                        np.any(sx > self.sd2)) and np.all(nem > 2))
+            stop = not(((np.mean(sx > self.threshold_1) > self.alpha) or
+                        np.any(sx > self.threshold_2)) and np.all(nem > 2))
             if not self.is_mode_complex:
                 stop = stop and not(np.abs(nzm - nem) > 1)
             stop_sift = stop
@@ -390,11 +458,16 @@ class EMD(object):
         return stop_sift, moyenne
 
     def keep_decomposing(self):
+        """Check whether to continue the sifting operation."""
         return not(self.stop_EMD()) and \
-               (self.k < self.n_imfs + 1 or self.n_imfs == 0)  # and \
+            (self.k < self.n_imfs + 1 or self.n_imfs == 0)  # and \
 # not(np.any(self.mask))
 
     def decompose(self):
+        """Decompose the input signal into IMFs.
+
+        This function does all the heavy lifting required for sifting, and
+        should ideally be the only public method of this class."""
         while self.keep_decomposing():
 
             # current mode
