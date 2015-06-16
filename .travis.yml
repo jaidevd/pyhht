@@ -1,12 +1,12 @@
+sudo: required
 language: python
+virtualenv:
+  system_site_packages: false
 env:
-  - COVERAGE="true" PYTHON_VERSION="2.7"
+  - DISTRIB="conda" COVERAGE="true" PYTHON_VERSION="2.7"
 # command to install dependencies
-install:
-  - "pip install ."
-  - "pip install -r requirements.txt"
-  - "pip install coveralls"
+install: source continuous_integration/install.sh
 # command to run tests
-script: nosetests --with-coverage --cover-package=pysemantic --no-byte-compile
+script: nosetests --with-coverage --cover-package=pysemantic
 after_success:
   coveralls
