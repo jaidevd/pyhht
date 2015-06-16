@@ -1,0 +1,28 @@
+[run]
+omit =
+    */python?.?/*
+    */lib-python/?.?/*.py
+    */unittest2/*
+    */dist-packages/pandas/*
+    */dist-packages/numpy/*
+    */dist-packages/nose/*
+    */dist-packages/pyyaml/*
+    */dist-packages/traits/*
+    */dist-packages/docopt/*
+    */pgmpy/extern/*
+
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+
+    # Don't complain about missing debug-only code:
+    def __repr__
+    if self\.debug
+
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
+    raise NotImplementedError
+
+    # Don't complain if non-runnable code isn't run:
+    if 0:
+    if __name__ == .__main__.:

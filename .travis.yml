@@ -1,0 +1,12 @@
+language: python
+env:
+  - COVERAGE="true" PYTHON_VERSION="2.7"
+# command to install dependencies
+install:
+  - "pip install ."
+  - "pip install -r requirements.txt"
+  - "pip install coveralls"
+# command to run tests
+script: nosetests --with-coverage --cover-package=pysemantic --no-byte-compile
+after_success:
+  coveralls

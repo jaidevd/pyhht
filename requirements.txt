@@ -1,3 +1,7 @@
 numpy
 scipy
 matplotlib
+# Testing
+coverage
+coveralls
+nose
