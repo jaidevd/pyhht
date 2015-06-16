@@ -5,7 +5,7 @@ virtualenv:
 env:
   - DISTRIB="conda" COVERAGE="true" PYTHON_VERSION="2.7"
 # command to install dependencies
-install: source continuous_integration/install.sh
+install: source ci/install.sh
 # command to run tests
 script: nosetests --with-coverage --cover-package=pysemantic
 after_success:
