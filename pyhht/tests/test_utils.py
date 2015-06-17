@@ -21,6 +21,18 @@ class TestUtils(unittest.TestCase):
         self.sinusoid = np.sin(2 * np.pi * 5 * t)
         self.random_data = np.random.random((1000,))
 
+    def test_get_envelopes(self):
+        upper, lower = utils.get_envelops(self.sinusoid)
+        self.assertGreaterEqual(np.greater_equal(upper, self.sinusoid).sum(),
+                                0.9 * self.sinusoid.shape[0])
+        self.assertGreaterEqual(np.less_equal(lower, self.sinusoid).sum(),
+                                0.9 * self.sinusoid.shape[0])
+
+    def test_error_not_enough_extrema(self):
+        t = np.linspace(0, 1, 1000)
+        signal = np.exp(-(t - 500) ** 2)
+        self.assertRaises(ValueError, utils.boundary_conditions, signal, t)
+
     def test_boundary_conditions(self):
         x = np.ones((7,))
         x[[1, 3, 5]] = -1
