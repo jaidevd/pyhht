@@ -24,6 +24,12 @@ class TestEMD(unittest.TestCase):
         self.mode1 = np.sin(2 * np.pi * 5 * self.ts)
         self.mode2 = np.sin(2 * np.pi * 10 * self.ts)
 
+    def test_emd_multidimensional_signal_error(self):
+        """Check if EMD raises an error for multidimensional signals."""
+        signal = self.trend + self.mode1 + self.mode2
+        signal = np.c_[signal, signal]
+        self.assertRaises(ValueError, EMD, signal)
+
     def test_imfs_total_no_error(self):
         """
         Check if the sum of the IMFs is sufficiently close to the input signal.

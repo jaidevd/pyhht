@@ -88,11 +88,11 @@ class EmpiricalModeDecomposition(object):
 
         if x.ndim > 1:
             if 1 not in x.shape:
-                raise TypeError("x must have only one row or one column.")
+                raise ValueError("x must have only one row or one column.")
         if x.shape[0] > 1:
             x = x.ravel()
         if not np.all(np.isfinite(x)):
-            raise TypeError("All elements of x must be finite.")
+            raise ValueError("All elements of x must be finite.")
         self.x = x
         self.ner = self.nzr = len(self.x)
         self.residue = self.x.copy()
@@ -101,10 +101,10 @@ class EmpiricalModeDecomposition(object):
             self.t = np.arange(np.max(x.shape))
         else:
             if t.shape != self.x.shape:
-                raise TypeError("t must have the same dimensions as x.")
+                raise ValueError("t must have the same dimensions as x.")
             if t.ndim > 1:
                 if 1 not in t.shape:
-                    raise TypeError("t must have only one column or one row.")
+                    raise ValueError("t must have only one column or one row.")
             if not np.all(np.isreal(t)):
                 raise TypeError("t must be a real vector.")
             if t.shape[0] > 1:
