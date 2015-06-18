@@ -13,6 +13,7 @@ Contents:
 
    apiref/pyhht
    apiref/modules
+   examples
 
 
 
