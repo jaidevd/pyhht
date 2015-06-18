@@ -20,9 +20,10 @@ time and frequency characteristics. Consider the signal obtained as follows::
     >>> import matplotlib.pyplot as plt
     >>> from tftb.generators import fmconst
     >>> n_points = 128
-    >>> mode1, iflaw1 = fmconst(n_points, fnorm=0.2)
-    >>> mode2, iflaw2 = fmconst(n_points, fnorm=0.4)
+    >>> mode1, iflaw1 = fmconst(n_points, fnorm=0.1)
+    >>> mode2, iflaw2 = fmconst(n_points, fnorm=0.3)
     >>> signal = np.r_[mode1, mode2]
     >>> plt.plot(np.real(signal)), plt.grid(), plt.show()
 
 .. plot:: tutorials/plots/intro_1.py
+.. plot:: tutorials/plots/intro_2.py
