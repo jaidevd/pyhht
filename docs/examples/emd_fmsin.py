@@ -11,7 +11,7 @@
 """
 
 import numpy as np
-from tftb.generators.api import fmsin, fmconst, amgauss
+from tftb.generators import fmsin, fmconst, amgauss
 from pyhht.emd import EMD
 from pyhht.visualization import plot_imfs
 

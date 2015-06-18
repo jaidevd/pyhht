@@ -11,7 +11,7 @@
 """
 
 import numpy as np
-from tftb.generators.api import fmsin, fmconst, amgauss
+from tftb.generators import fmsin, fmconst, amgauss
 from scipy.signal import kaiser
 from tftb.processing.reassigned import spectrogram
 from pyhht.emd import EMD
