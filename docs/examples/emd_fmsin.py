@@ -12,11 +12,8 @@
 
 import numpy as np
 from tftb.generators.api import fmsin, fmconst, amgauss
-from scipy.signal import kaiser
-from tftb.processing.reassigned import spectrogram
 from pyhht.emd import EMD
 from pyhht.visualization import plot_imfs
-import matplotlib.pyplot as plt
 
 
 N = 2001
@@ -47,28 +44,3 @@ x = x / np.max(np.abs(x))
 decomposer = EMD(x)
 imf = decomposer.decompose()
 plot_imfs(x, t, imf)
-
-n_freq_bins = 256
-short_window_length = 127
-beta = 3 * np.pi
-window = kaiser(short_window_length, beta=beta)
-
-_, re_spec_sig, _ = spectrogram(x, t, n_freq_bins, window)
-_, re_spec_imf1, _ = spectrogram(imf[0, :], t, n_freq_bins, window)
-_, re_spec_imf2, _ = spectrogram(imf[1, :], t, n_freq_bins, window)
-_, re_spec_imf3, _ = spectrogram(imf[2, :], t, n_freq_bins, window)
-
-fig = plt.figure()
-for i, rspec in enumerate([re_spec_sig, re_spec_imf1, re_spec_imf2,
-                           re_spec_imf3]):
-    ax = fig.add_subplot(2, 2, i + 1)
-    ax.imshow(np.flipud(np.abs(rspec[:128, :]) ** 2), extent=[0, 1, 0, 1])
-    ax.tick_params(which='both', left=False, bottom=False, labelleft=False,
-            labelbottom=False)
-    ax.set_xlabel('time')
-    ax.set_ylabel('frequency')
-    if i == 0:
-        ax.set_title('signal')
-    else:
-        ax.set_title('mode #{}'.format(i))
-plt.show()
