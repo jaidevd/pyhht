@@ -59,8 +59,9 @@ _, re_spec_imf3, _ = spectrogram(imf[2, :], t, n_freq_bins, window)
 fig = plt.figure()
 for i, rspec in enumerate([re_spec_sig, re_spec_imf1, re_spec_imf2,
                            re_spec_imf3]):
+    rspec = np.abs(rspec)[:128, :]
     ax = fig.add_subplot(2, 2, i + 1)
-    ax.imshow(np.flipud(np.abs(rspec[:128, :]) ** 2), extent=[0, 1, 0, 1])
+    ax.imshow(np.flipud(rspec), extent=[0, 1, 0, 1])
     ax.tick_params(which='both', left=False, bottom=False, labelleft=False,
             labelbottom=False)
     ax.set_xlabel('time')
