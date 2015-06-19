@@ -276,4 +276,5 @@ def skip(app, what, name, obj, skip, options):
     return skip
 
 def setup(app):
+    app.add_javascript("https://docs.python.org/2/_static/copybutton.js")
     app.connect("autodoc-skip-member", skip)
