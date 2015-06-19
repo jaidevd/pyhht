@@ -28,8 +28,9 @@ for i in range(axes.shape[0]):
         if j == 0:
             axes[i, j].set_ylabel(str(n_fbins[i]))
         if i == 5:
-            axes[i, j].set_xlabel(str(h[j]))
+            axes[i, j].set_xlabel(str(int(h[j])))
 
 fig.text(0.5, 0.04, 'Window lengths', ha='center')
 fig.text(0.04, 0.5, 'Frequency bins', va='center', rotation='vertical')
+plt.suptitle("STFT with varying parameters")
 plt.show()
