@@ -1,5 +1,5 @@
-Limitations of the Fourier Transform and A Data Driven Approach to Time-Frequency Analysis
-==========================================================================================
+Limitations of the Fourier Transform: Need For a Data Driven Approach
+=====================================================================
 
 Methods based on the Fourier transform are almost synonymous with frequency domain
 processing of signals (funnily, I once had a classmate who thought "Fourier"
@@ -46,8 +46,8 @@ frequencies::
 
 .. plot:: tutorials/plots/intro_1_spectrum.py
 
-Note that the signal produced by the ``fmconst`` function produces an `Analytic
-Signal <https://en.wikipedia.org/wiki/Analytic_signal>`_, which are complex
+Note that the signal produced by the |fmconst|_ function produces an `Analytic
+Signal <https://en.wikipedia.org/wiki/Analytic_signal>`_. Analytic signals are complex
 valued, and by definition do not have negative frequency components.
 
 A note on time-frequency analysis
@@ -86,7 +86,8 @@ A popular choice to represent both time and frequency characteristics is the
 <https://en.wikipedia.org/wiki/Short-time_Fourier_transform>`_, which, simply
 put, transforms contiguous chunks of the input and aggregates the result in a 2
 dimensional form, where one axis represents frequency and the other represents
-time. PyTFTB has an STFT implementation which we can use as follows::
+time. PyTFTB has an `STFT implementation
+<http://pytftb.readthedocs.org/en/latest/apiref/tftb.processing.html#tftb.processing.linear.ShortTimeFourierTransform>`_ which we can use as follows::
 
     >>> from tftb.processing import ShortTimeFourierTransform
     >>> stft = ShortTimeFourierTransform(signal)
@@ -165,3 +166,6 @@ section will deal with how Hilbert spectral analysis is better suited for
 nonlinear and nonstationary time series data, and how the empirical mode
 decomposition algorithm makes the results of the Hilber spectral analysis
 more reasonable.
+
+.. |fmconst| replace:: ``fmconst``
+.. _fmconst: http://pytftb.readthedocs.org/en/latest/apiref/tftb.generators.html#tftb.generators.frequency_modulated.fmconst
