@@ -23,5 +23,5 @@ Contents:
     :maxdepth: 2
 
     tutorials/limitations_fourier.rst
-    tutorials/need_for_hsa.rst
+    tutorials/hilbert_view_nonlinearity.rst
     tutorials/intro_pyhht.rst
