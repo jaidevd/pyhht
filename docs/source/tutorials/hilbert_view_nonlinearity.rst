@@ -107,11 +107,23 @@ as follows::
     >>> x = gen.amgauss(128) * gen.fmconst(128)[0]
     >>> plot(real(x))
 
-.. plot:: tutorials/plots/gaussian_signal.py
+.. plot::
+
+  from tftb.generators import fmconst, amgauss
+  import matplotlib.pyplot as plt
+  from numpy import real
+  x = amgauss(128) * fmconst(128)[0]
+  plt.plot(real(x))
+  plt.grid()
+  plt.xlim(0, 128)
+  plt.title("Gaussian amplitude modulation")
+  plt.show()
+
+..code-block:: python
 
     >>> from tftb.processing import loctime, locfreq
-    >>> time_mean, time_duration = proc.loctime(x)
-    >>> freq_center, bandwidth = proc.locfreq(x)
+    >>> time_mean, time_duration = loctime(x)
+    >>> freq_center, bandwidth = locfreq(x)
     >>> time_duration * bandwidth
     1.0
 
@@ -169,7 +181,7 @@ Consider the three sinusoidal signals obtained as follows::
     >>> s3 = np.sin(x) + 2
     >>> plt.plot(x, s1, 'b', x, s2, 'g', x, s3, 'r')
 
-.. plot:: source/tutorials/imf_example_sines.py
+.. plot:: tutorials/plots/imf_example_sines.py
 
 All of them are identical, except that two of them have a nonzero DC component.
 Since the Hilbert transform of sine is cosine, the analytic signals of these
@@ -183,7 +195,7 @@ sinusoids should represent unit circles in the complex plane::
     >>> plt.plot(np.real(hs2), np.imag(hs2), 'g')
     >>> plt.plot(np.real(hs3), np.imag(hs3), 'r')
 
-.. plot:: source/tutorials/hilbert_sinusoids.py
+.. plot:: tutorials/plots/hilbert_sinusoids.py
 
 Imagine that each circle is traced out by a rotating phasor centered around
 the origin in the figure above. The angle that the phasor rotates through represents
@@ -203,7 +215,7 @@ isntantaneous frequencies of the three signals::
     >>> plt.plot(x[1:], f_inst_s3, "r")
     >>> plt.show()
 
-.. plot:: source/tutorials/plots/instfreq_sines.py
+.. plot:: tutorials/plots/instfreq_sines.py
 
 The plot shows the instantaneous phase and instantaneous frequencies of the
 sine waves as per this interpretation. As shown in the figure, only one
