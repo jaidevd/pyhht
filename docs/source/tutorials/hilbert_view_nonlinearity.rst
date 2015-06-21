@@ -93,15 +93,19 @@ period length is defined *a priori*, thereby showing the uncertainty in either
 frequency or time. Mathematically the uncertainty principle is represented
 with the Heisenberg-Gabor Inequality (also sometimes called the Gabor limit):
 
-Definition 1. If T and B are standard deviations of the time
-characteristics and bandwidth respectively of a signal s(t),
-then
-T B ≥ 1 (1)
+.. topic:: Heisenberg - Gabor Inequality
 
-Equation 1 is the Heisenberg-Gabor inequality. It states that the
-time-bandwidth product of a signal is lower bounded by unity. Gaussian
-functions satisfy the equality condition in the equation. This can be verified
-as follows::
+    If :math:`T` and :math:`B` are standard deviations of the time
+    characteristics and the bandwidth respectively of a signal :math:`s(t)`,
+    then
+
+    .. math::
+
+        TB ≥ 1
+
+The expression states that the time-bandwidth product of a signal is lower
+bounded by unity. Gaussian functions satisfy the equality condition in the
+equation. This can be verified as follows::
 
     >>> from tftb.generators import fmconst, amgauss
     >>> x = gen.amgauss(128) * gen.fmconst(128)[0]
@@ -119,7 +123,7 @@ as follows::
   plt.title("Gaussian amplitude modulation")
   plt.show()
 
-..code-block:: python
+.. code-block:: python
 
     >>> from tftb.processing import loctime, locfreq
     >>> time_mean, time_duration = loctime(x)
@@ -149,15 +153,19 @@ frequencies is provided by [6] is discussed in the next section.
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
 In order to define instantaneous frequencies we must first introduce the
-concept of analytic signals. For any real valued signal x(t) we associate a
-complex valued signal xa(t) defined as:
-xa(t) = x(t) + jxd(t) (2)
-where xd(t) is the Hilbert transform of x(t). Then the
+concept of analytic signals. For any real valued signal :math:`x(t)` we associate a
+complex valued signal :math:`x_{a}(t)` defined as:
+
+.. math::
+
+    x_{a}(t) = x(t) + j\widehat{x(t)}
+
+where :math:`\widehat{x(t)}` is the Hilbert transform of :math:`x(t)`. Then the
 instantaneous frequency can be defined as:
-f(t) = 1
-2π
-d
-dtargxa(t) (3)
+
+.. math::
+
+    \nu_{inst} = \frac{1}{2\pi}\frac{d}{dt}\arctan[x_{a}(t)]
 
 2.2 Instantaneous Frequencies from HHT
 ++++++++++++++++++++++++++++++++++++++
@@ -228,13 +236,12 @@ zero DC component and is symmetrical around the time axis.
 The fact that true instantaneous frequencies are reproduced only when the
 signal is symmetric about the X-axis motivates the definition of an IMF.
 
-Definition 2. A function is called an intrinsic mode function
-when:
-• The number of its extrema and zero-crossings differ at
-most by unity.
-• The mean of the local envelopes defined by it’s local
-maxima and that defined by its local minima should be
-zero at all times.
+.. topic:: Intrinsic Mode Functions
+
+    A function is called an intrinsic mode function when:
+      1. The number of its extrema and zero-crossings differ at most by unity.
+      2. The mean of the local envelopes defined by it’s local maxima and
+         that defined by its local minima should be zero at all times.
 
 Condition 1 ensures that there are no localized oscillations in the signal
 and it crosses the X-axis atleast once before it goes from one extremum to
