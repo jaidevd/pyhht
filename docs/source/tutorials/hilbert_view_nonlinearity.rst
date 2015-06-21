@@ -73,7 +73,7 @@ the STFTs of the signal with four different window lengths:
 
 .. plot:: tutorials/plots/uncertainty_stft.py
 
-As can be clearly seen, the resolution in time and frequency
+As can be clearly seen, resolution in time and frequency
 cannot be obtained simultaneously. In the last (bottom) image, where the
 window length is high, the STFT manages to discriminate between frequencies
 of 500 Hz and 1000 Hz very clearly, but the time resolution between the
@@ -89,8 +89,8 @@ definition insists that a signal be represented as a weighted sum of sinusoids,
 and therefore identifies frequency information that is globally prevalent. As
 a workaround to this interpretation, we use the STFT which performs the
 Fourier transform on limited periods of the signals. But unfortunately the
-period length is defined *a priori*, thereby showing the uncertainty in either
-frequency or time. Mathematically the uncertainty principle is represented
+period length is defined *a priori*, thereby making the results uncertain in either
+frequency or time. Mathematically this uncertainty can be quantified
 with the Heisenberg-Gabor Inequality (also sometimes called the Gabor limit):
 
 .. topic:: Heisenberg - Gabor Inequality
@@ -132,7 +132,7 @@ equation. This can be verified as follows::
     1.0
 
 A remarkably insightful commentary on the Uncertainty principle is provided
-in [7], which states that the Uncertainty principle is a statement about two
+in [1]_, which states that the Uncertainty principle is a statement about two
 variables whose associated operators do not mutually commute. This helps us
 apply the Uncertainty principle in signal processing in the same way as in
 quantum physics.
@@ -147,7 +147,7 @@ remained highly controversial ever since its inception, and it is easy to
 see why. When something is instantaneous it is localized in time. Since time
 and frequency are inverse quantities, localizing frequency in time can be
 highly ambiguous. However, a practical definition of instantaneous
-frequencies is provided by [6] is discussed in the next section.
+frequencies is provided in [2]_, and is discussed in the next section.
 
 2.1 Analytic Signals and Instantaneous Frequencies
 ++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -205,9 +205,10 @@ sinusoids should represent unit circles in the complex plane::
 
 .. plot:: tutorials/plots/hilbert_sinusoids.py
 
-Imagine that each circle is traced out by a rotating phasor centered around
-the origin in the figure above. The angle that the phasor rotates through represents
-the instantaneous phase of the signal, and its time differential is the
+Imagine that each circle is traced out by a phasor rotating anticlockwise,
+which is centered at the origin in the figure above. The angle that the
+phasor rotates through in an infinitesimally small time period represents the
+instantaneous phase of the signal, and its time differential is the
 instantaneous frequency. Using this interpretation, let's try to compute the
 isntantaneous frequencies of the three signals::
 
@@ -225,8 +226,7 @@ isntantaneous frequencies of the three signals::
 
 .. plot:: tutorials/plots/instfreq_sines.py
 
-The plot shows the instantaneous phase and instantaneous frequencies of the
-sine waves as per this interpretation. As shown in the figure, only one
+As shown in the figure, only one
 sinusoid presents an instantaneous frequency that is constant and corresponds
 to the true frequency of the waves. This wave is the one which has its
 analytical signal centered around the origin, thereby allowing the phasor to
@@ -294,7 +294,7 @@ the Fourier analysis and the physical significance provided by the
 Hilbert-Huang transform. Wavelets are the closest thing to the HHT that not
 only have the ability to analyze nonlinear and nonstationary phenomena, but
 also a complete mathematical foundation. Unfortunately wavelets are not
-adaptive and as such might suffer from problems like Uncertainty principle,
+adaptive and as such might suffer from problems like uncertainty principle,
 leakages, Gibb’s phenomenon, harmonics, etc - like most of the decomposition
 techniques that use a priori basis functions. On the other hand, the basis
 functions of the HHT are IMFs which are adaptive and empirical. But EMD is
@@ -332,3 +332,6 @@ research potential.
 
 The next tutorial is a comprehensive guide to PyHHT, and provides a detailed
 overview of how different aspects of the HHT can be harnessed with the module.
+
+.. [1] http://www.amazon.com/Time-Frequency-Analysis-Theory-Applications/dp/0135945321
+.. [2] http://tftb.nongnu.org/tutorial.pdf
