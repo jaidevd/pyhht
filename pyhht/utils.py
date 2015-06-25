@@ -13,7 +13,49 @@ Utility functions used to inspect EMD functionality.
 from matplotlib.mlab import find
 import numpy as np
 from scipy.signal import argrelmax, argrelmin
-from scipy import interpolate
+from scipy import interpolate, angle
+
+
+def inst_freq(x, t=None, L=1):
+    """
+    Compute the instantaneous frequency of an analytic signal at specific
+    time instants using the trapezoidal integration rule.
+
+    :param x: The input analytic signal
+    :param t: The time instants at which to calculate the instantaneous frequencies.
+    :param L: Non default values are currently not supported.
+        If L is 1, the normalized instantaneous frequency is computed. If L > 1,
+        the maximum likelihood estimate of the instantaneous frequency of the
+        deterministic part of the signal.
+    :type x: numpy.ndarray
+    :type t: numpy.ndarray
+    :type L: int
+    :return: instantaneous frequencies of the input signal.
+    :rtype: numpy.ndarray
+    :Example:
+    >>> x = fmsin(70, 0.05, 0.35, 25)[0]
+    >>> instf, timestamps = inst_freq(x)
+    >>> plot(timestamps, instf)
+
+    .. plot:: docstring_plots/processing/freq_domain/inst_freq.py
+    """
+    if x.ndim != 1:
+        if 1 not in x.shape:
+            raise TypeError("Input should be a one dimensional array.")
+        else:
+            x = x.ravel()
+    if t is not None:
+        if t.ndim != 1:
+            if 1 not in t.shape:
+                raise TypeError("Time instants should be a one dimensional "
+                                "array.")
+            else:
+                t = t.ravel()
+    else:
+        t = np.arange(2, len(x))
+
+    fnorm = 0.5 * (angle(-x[t] * np.conj(x[t - 2])) + np.pi) / (2 * np.pi)
+    return fnorm, t
 
 
 def boundary_conditions(x, t, z=None, nbsym=2):
