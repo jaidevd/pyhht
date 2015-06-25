@@ -33,11 +33,12 @@ def inst_freq(x, t=None, L=1):
     :return: instantaneous frequencies of the input signal.
     :rtype: numpy.ndarray
     :Example:
+    >>> from tftb.generators import fmsin
     >>> x = fmsin(70, 0.05, 0.35, 25)[0]
     >>> instf, timestamps = inst_freq(x)
     >>> plot(timestamps, instf)
 
-    .. plot:: docstring_plots/processing/freq_domain/inst_freq.py
+    .. plot:: docstring_plots/utils/inst_freq.py
     """
     if x.ndim != 1:
         if 1 not in x.shape:
