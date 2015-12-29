@@ -6,4 +6,4 @@ coverage
 coveralls
 nose
 # examples
--e git+git://github.com/scikit-signal/pytftb#egg=pytftb
+-e git+http://github.com/scikit-signal/pytftb#egg=pytftb
