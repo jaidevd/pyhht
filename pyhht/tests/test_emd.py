@@ -24,6 +24,16 @@ class TestEMD(unittest.TestCase):
         self.mode1 = np.sin(2 * np.pi * 5 * self.ts)
         self.mode2 = np.sin(2 * np.pi * 10 * self.ts)
 
+    def test_zeromean_decomposition(self):
+        """Test if the EMD decomposes a signal properly if it has local mean
+        close to zero."""
+        t = 2 * np.pi * self.ts
+        signal = np.cos(80 * t) + 0.8 * np.sin(50 * t) + \
+            0.6 * np.sin(25 * t) + 0.4 * np.sin(10 * t) + 0.3 * np.cos(3 * t)
+        emd = EMD(signal)
+        imfs = emd.decompose()
+        self.assertEqual(imfs.shape[0], 6)
+
     def test_emd_multidimensional_signal_error(self):
         """Check if EMD raises an error for multidimensional signals."""
         signal = self.trend + self.mode1 + self.mode2
