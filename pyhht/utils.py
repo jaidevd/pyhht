@@ -216,7 +216,7 @@ def extr(x):
         indz = []
         if np.any(np.diff(iz) == 1):
             zer = x == 0
-            dz = np.diff([0, zer, 0])
+            dz = np.diff(np.r_[0, zer, 0])
             debz = find(dz == 1)
             finz = find(dz == -1) - 1
             indz = np.round((debz + finz) / 2)
