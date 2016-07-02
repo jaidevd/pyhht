@@ -278,7 +278,11 @@ class EmpiricalModeDecomposition(object):
                 stop = 1
             stop_sift = stop
         else:
-            envmoy, nem, nzm, amp = self.mean_and_amplitude(m)
+            try:
+                envmoy, nem, nzm, amp = self.mean_and_amplitude(m)
+            except TypeError as err:
+                if err.args[0] == "m > k must hold":
+                    return 1, np.zeros((len(m)))
             sx = np.abs(envmoy) / amp
             stop = not(((np.mean(sx > self.threshold_1) > self.alpha) or
                         np.any(sx > self.threshold_2)) and np.all(nem > 2))
