@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_imfs(signal, time_samples, imfs, fignum=None):
+def plot_imfs(signal, imfs, time_samples=None, fignum=None):
     """Visualize decomposed signals.
 
     :param signal: Analyzed signal
@@ -31,6 +31,8 @@ def plot_imfs(signal, time_samples, imfs, fignum=None):
 
     .. plot:: ../../docs/examples/emd_fmsin.py
     """
+    if time_samples is None:
+        time_samples = np.arange(signal.shape[0])
 
     n_imfs = imfs.shape[0]
 
