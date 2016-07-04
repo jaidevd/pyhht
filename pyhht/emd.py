@@ -345,7 +345,7 @@ class EmpiricalModeDecomposition(object):
 
                 if (self.nbit == (self.maxiter - 1)) and not(self.fixe) and (self.nbit > 100):
                     warnings.warn("Emd:warning, Forced stop of sifting - " +
-                                  "too many iterations")
+                                  "Maximum iteration limit reached.")
 
             self.imf.append(m)
 
