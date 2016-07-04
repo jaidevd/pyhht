@@ -11,8 +11,10 @@ Unittests for the EMD class
 """
 
 import unittest
+import os.path as op
 import numpy as np
-from scipy.signal import argrelmax, argrelmin
+from scipy.signal import argrelmax, argrelmin, resample
+from scipy.io import loadmat
 from numpy.testing import assert_allclose
 from pyhht.emd import EMD
 
@@ -56,6 +58,27 @@ class TestEMD(unittest.TestCase):
         imfs = decomposer.decompose()
         self.assertItemsEqual(imfs.shape, (signal.shape[0], 3))
 
+    def test_noisy_signal(self):
+        """Test if decompiosing a noisy signal works."""
+        fpath = op.join(op.abspath(op.dirname(__file__)), "testdata",
+                        "gabor.mat")
+        signal = loadmat(fpath)['gabor'].ravel()
+        signal = resample(signal, signal.shape[0] * 1000)
+        signal += np.random.normal(size=signal.shape)
+        engine = EMD(signal)
+        engine.decompose()
+
+    def test_maxiter(self):
+        """Check if the maxiter parameter is respected."""
+        fpath = op.join(op.abspath(op.dirname(__file__)), "testdata",
+                        "gabor.mat")
+        signal = loadmat(fpath)['gabor'].ravel()
+        signal = resample(signal, signal.shape[0] * 1000)
+        signal += np.random.normal(size=signal.shape)
+        engine = EMD(signal, maxiter=200)
+        engine.decompose()
+        self.assertEqual(engine.nbit, 200)
+
     def test_residue(self):
         """Test the residue of the emd output."""
         signal = np.sum([self.trend, self.mode1, self.mode2], axis=0)
@@ -65,7 +88,6 @@ class TestEMD(unittest.TestCase):
         n_maxima = argrelmax(imfs[n_imfs - 1, :])[0].shape[0]
         n_minima = argrelmin(imfs[n_imfs - 1, :])[0].shape[0]
         self.assertTrue(max(n_maxima, n_minima) <= 2)
-
 
 if __name__ == '__main__':
     unittest.main()
