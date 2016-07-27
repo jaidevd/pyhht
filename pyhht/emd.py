@@ -12,7 +12,7 @@ import numpy as np
 from numpy import pi
 import warnings
 from scipy.interpolate import splrep, splev
-from utils import extr, boundary_conditions
+from pyhht.utils import extr, boundary_conditions
 
 
 class EmpiricalModeDecomposition(object):
@@ -21,7 +21,7 @@ class EmpiricalModeDecomposition(object):
     def __init__(self, x, t=None, threshold_1=0.05, threshold_2=0.5, alpha=0.05,
                  is_mode_complex=None, ndirs=4, fixe=0, maxiter=2000,
                  fixe_h=0, n_imfs=0, nbsym=2):
-        r"""Empirical mode decomposition.
+        """Empirical mode decomposition.
 
         :param x: A vector on which to perform empirical mode decomposition.
         :param t: Sampling time instants.
@@ -140,7 +140,7 @@ class EmpiricalModeDecomposition(object):
 #            imf1 = emd(x+mask, opts)
 
     def io(self):
-        r"""Compute the index of orthoginality, as defined by:
+        """Compute the index of orthoginality, as defined by:
 
             .. math:: \sum_{i, j=1, i\neq j}^{N} \frac{\|C_{i}\overline{C_{j}}\|}{\|x\|^2}
 
@@ -155,7 +155,7 @@ class EmpiricalModeDecomposition(object):
         >>> x = modes + t
         >>> decomposer = EMD(x)
         >>> decomposer.decompose()
-        >>> print decomposer.io()
+        >>> print(decomposer.io())
         0.0516420404972
         """
 
@@ -319,7 +319,7 @@ class EmpiricalModeDecomposition(object):
                 if not stop_sift:
                     warnings.warn("EMD Warning: Amplitude too small, stopping.")
                 else:
-                    print "Force stopping EMD: amplitude too small."
+                    print("Force stopping EMD: amplitude too small.")
                 return
 
             # SIFTING LOOP:
@@ -328,9 +328,9 @@ class EmpiricalModeDecomposition(object):
                 if (not(self.is_mode_complex) and (self.nbit > self.maxiter / 5) and
                         self.nbit % np.floor(self.maxiter / 10) == 0 and
                         not(self.fixe) and self.nbit > 100):
-                    print "Mode " + str(self.k) + ", Iteration " + str(self.nbit)
+                    print("Mode " + str(self.k) + ", Iteration " + str(self.nbit))
                     im, iM, _ = extr(m)
-                    print str(np.sum(m[im] > 0)) + " minima > 0; " + str(np.sum(m[im] < 0)) + " maxima < 0."
+                    print(str(np.sum(m[im] > 0)) + " minima > 0; " + str(np.sum(m[im] < 0)) + " maxima < 0.")
 
                 # Sifting
                 m = m - moyenne
