@@ -43,4 +43,4 @@ x = x / np.max(np.abs(x))
 
 decomposer = EMD(x)
 imf = decomposer.decompose()
-plot_imfs(x, t, imf)
+plot_imfs(x, imf, t)
