@@ -27,7 +27,7 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None):
     :return: None
     :Example:
 
-    >>> plot_imfs(signal)
+    >>> plot_imfs(signal, imfs)
 
     .. plot:: ../../docs/examples/emd_fmsin.py
     """
