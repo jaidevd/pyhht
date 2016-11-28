@@ -59,11 +59,11 @@ class TestEMD(unittest.TestCase):
         self.assertItemsEqual(imfs.shape, (signal.shape[0], 3))
 
     def test_noisy_signal(self):
-        """Test if decompiosing a noisy signal works."""
+        """Test if decomposing a noisy signal works."""
         fpath = op.join(op.abspath(op.dirname(__file__)), "testdata",
                         "gabor.mat")
         signal = loadmat(fpath)['gabor'].ravel()
-        signal = resample(signal, signal.shape[0] * 1000)
+        signal = resample(signal, signal.shape[0] * 100)
         signal += np.random.normal(size=signal.shape)
         engine = EMD(signal)
         engine.decompose()
@@ -73,7 +73,7 @@ class TestEMD(unittest.TestCase):
         fpath = op.join(op.abspath(op.dirname(__file__)), "testdata",
                         "gabor.mat")
         signal = loadmat(fpath)['gabor'].ravel()
-        signal = resample(signal, signal.shape[0] * 1000)
+        signal = resample(signal, signal.shape[0] * 100)
         signal += np.random.normal(size=signal.shape)
         engine = EMD(signal, maxiter=200)
         engine.decompose()
