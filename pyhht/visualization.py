@@ -27,9 +27,17 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None):
     :return: None
     :Example:
 
-    >>> plot_imfs(signal, imfs)
+    >>> from pyhht.visualization import plot_imfs
+    >>> import numpy as np
+    >>> from pyhht import EMD
+    >>> t = np.linspace(0, 1, 1000)
+    >>> modes = np.sin(2 * np.pi * 5 * t) + np.sin(2 * np.pi * 10 * t)
+    >>> x = modes + t
+    >>> decomposer = EMD(x)
+    >>> imfs = decomposer.decompose()
+    >>> plot_imfs(x, imfs, t) #doctest: +SKIP
 
-    .. plot:: ../../docs/examples/emd_fmsin.py
+    .. plot:: ../../docs/examples/simple_emd.py
     """
     if time_samples is None:
         time_samples = np.arange(signal.shape[0])

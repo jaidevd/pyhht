@@ -34,9 +34,10 @@ def inst_freq(x, t=None, L=1):
     :rtype: numpy.ndarray
     :Example:
     >>> from tftb.generators import fmsin
+    >>> import matplotlib.pyplot as plt
     >>> x = fmsin(70, 0.05, 0.35, 25)[0]
     >>> instf, timestamps = inst_freq(x)
-    >>> plot(timestamps, instf)
+    >>> plt.plot(timestamps, instf) #doctest: +SKIP
 
     .. plot:: docstring_plots/utils/inst_freq.py
     """
@@ -75,6 +76,11 @@ def boundary_conditions(x, t, z=None, nbsym=2):
     :return: timestamps and values of extended extrema, ordered as (minima \
         timestamps, maxima timestamps, minima values, maxima values.)
     :rtype: tuple
+    :Example:
+    >>> import numpy as np
+    >>> signal = np.array([-1, 1, -1, 1, -1])
+    >>> print boundary_conditions(signal, np.arange(5))
+    (array([0, 1, 2, 4, 6]), array([-1,  1,  3,  5,  7]), array([-1,  1, -1, -1, -1]), array([1, 1, 1, 1, 1]))
     """
     indmax = argrelmax(x)[0]
     indmin = argrelmin(x)[0]
@@ -173,6 +179,10 @@ def boundary_conditions(x, t, z=None, nbsym=2):
 
 def get_envelops(x, t=None):
     """ Find the upper and lower envelopes of the array `x`.
+    :Example:
+    >>> import numpy as np
+    >>> x = np.random.rand(100,)
+    >>> upper, lower = get_envelops(x)
     """
     if t is None:
         t = np.arange(x.shape[0])
@@ -205,6 +215,16 @@ def extr(x):
     :type x: array-like
     :return: indices of minima, maxima and zero crossings.
     :rtype: tuple
+    :Example:
+    >>> import numpy as np
+    >>> x = np.array([0, -2, 0, 1, 3, 0.5, 0, -1, -1])
+    >>> indmin, indmax, indzer = extr(x)
+    >>> print indmin
+    [1]
+    >>> print indmax
+    [4]
+    >>> print indzer
+    [0 2 6]
     """
     m = x.shape[0]
 

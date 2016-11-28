@@ -28,6 +28,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
 	conda create -n testenv python=$PYTHON_VERSION --file ci/requirements.txt
     source activate testenv
+    pip install git+git://github.com/scikit-signal/pytftb@master
 fi
 
 if [[ "$COVERAGE" == "true" ]]; then
