@@ -60,12 +60,13 @@ class EmpiricalModeDecomposition(object):
         :Example:
 
         >>> from pyhht.visualization import plot_imfs
-        >>> t = linspace(0, 1, 1000)
-        >>> modes = sin(2 * pi * 5 * t) + sin(2 * pi * 10 * t)
+        >>> import numpy as np
+        >>> t = np.linspace(0, 1, 1000)
+        >>> modes = np.sin(2 * pi * 5 * t) + np.sin(2 * pi * 10 * t)
         >>> x = modes + t
         >>> decomposer = EMD(x)
         >>> imfs = decomposer.decompose()
-        >>> plot_imfs(x, imfs, t)
+        >>> plot_imfs(x, imfs, t) #doctest: +SKIP
 
         .. plot:: ../../docs/examples/simple_emd.py
         """
@@ -150,11 +151,12 @@ class EmpiricalModeDecomposition(object):
         :rtype: float
         :Example:
 
-        >>> t = linspace(0, 1, 1000)
-        >>> modes = sin(2 * pi * 5 * t) + sin(2 * pi * 10 * t)
+        >>> import numpy as np
+        >>> t = np.linspace(0, 1, 1000)
+        >>> modes = np.sin(2 * pi * 5 * t) + np.sin(2 * pi * 10 * t)
         >>> x = modes + t
         >>> decomposer = EMD(x)
-        >>> decomposer.decompose()
+        >>> imfs = decomposer.decompose()
         >>> print(decomposer.io())
         0.0516420404972
         """
@@ -305,7 +307,17 @@ class EmpiricalModeDecomposition(object):
         """Decompose the input signal into IMFs.
 
         This function does all the heavy lifting required for sifting, and
-        should ideally be the only public method of this class."""
+        should ideally be the only public method of this class.
+        :Example:
+
+        >>> from pyhht.visualization import plot_imfs
+        >>> import numpy as np
+        >>> t = np.linspace(0, 1, 1000)
+        >>> modes = np.sin(2 * pi * 5 * t) + np.sin(2 * pi * 10 * t)
+        >>> x = modes + t
+        >>> decomposer = EMD(x)
+        >>> imfs = decomposer.decompose()
+        """
         while self.keep_decomposing():
 
             # current mode
