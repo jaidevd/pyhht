@@ -13,6 +13,7 @@ Unittests for the EMD class
 import unittest
 import os.path as op
 import numpy as np
+import six
 from scipy.signal import argrelmax, argrelmin, resample
 from scipy.io import loadmat
 from numpy.testing import assert_allclose
@@ -56,7 +57,10 @@ class TestEMD(unittest.TestCase):
         signal = np.sum([self.trend, self.mode1, self.mode2], axis=0)
         decomposer = EMD(signal, t=self.ts)
         imfs = decomposer.decompose()
-        self.assertItemsEqual(imfs.shape, (signal.shape[0], 3))
+        if six.PY3:
+            self.assertTupleEqual(imfs.shape, (3, signal.shape[0]))
+        else:
+            self.assertItemsEqual(imfs.shape, (3, signal.shape[0]))
 
     def test_noisy_signal(self):
         """Test if decomposing a noisy signal works."""

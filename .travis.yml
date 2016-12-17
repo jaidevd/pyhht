@@ -1,9 +1,12 @@
 sudo: required
 language: python
+python:
+  - "2.7"
+  - "3.5"
 virtualenv:
   system_site_packages: false
 env:
-  - DISTRIB="conda" COVERAGE="true" PYTHON_VERSION="2.7"
+  - DISTRIB="conda" COVERAGE="true" # PYTHON_VERSION="2.7"
 # command to install dependencies
 install: source ci/install.sh
 # command to run tests
