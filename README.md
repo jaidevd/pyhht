@@ -10,7 +10,7 @@ A Python module for the Hilbert Huang Transform.
 
 Dependencies
 ------------
-The module has been tested to work on Python 2.7. It requires NumPy, SciPy and
+The module has been tested to work on Python 2.7 and Python 3.6. It requires NumPy, SciPy and
 matplotlib.
 
 pytftb is required to run some examples. It can be found at:
