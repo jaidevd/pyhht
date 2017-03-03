@@ -1,8 +1,5 @@
 sudo: false
 language: python
-python:
-  - "2.7"
-  - "3"
 virtualenv:
   system_site_packages: false
 env:
