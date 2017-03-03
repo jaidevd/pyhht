@@ -77,9 +77,10 @@ def boundary_conditions(x, t, z=None, nbsym=2):
         timestamps, maxima timestamps, minima values, maxima values.)
     :rtype: tuple
     :Example:
+    >>> from __future__ import print_function
     >>> import numpy as np
     >>> signal = np.array([-1, 1, -1, 1, -1])
-    >>> print boundary_conditions(signal, np.arange(5))
+    >>> print(boundary_conditions(signal, np.arange(5)))
     (array([0, 1, 2, 4, 6]), array([-1,  1,  3,  5,  7]), array([-1,  1, -1, -1, -1]), array([1, 1, 1, 1, 1]))
     """
     indmax = argrelmax(x)[0]
@@ -216,14 +217,15 @@ def extr(x):
     :return: indices of minima, maxima and zero crossings.
     :rtype: tuple
     :Example:
+    >>> from __future__ import print_function
     >>> import numpy as np
     >>> x = np.array([0, -2, 0, 1, 3, 0.5, 0, -1, -1])
     >>> indmin, indmax, indzer = extr(x)
-    >>> print indmin
+    >>> print(indmin)
     [1]
-    >>> print indmax
+    >>> print(indmax)
     [4]
-    >>> print indzer
+    >>> print(indzer)
     [0 2 6]
     """
     m = x.shape[0]
