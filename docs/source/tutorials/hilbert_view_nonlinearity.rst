@@ -26,7 +26,7 @@ nonstationary signal as harmonics of lower components.
 A powerful variant of the Fourier transform is the wavelet transform. By
 using finite-support basis functions, wavelets are able to approximate even
 nonstationary data. These basis functions possess most of the desirable
-properties required for linear decomposition (like orthogonality, completenes
+properties required for linear decomposition (like orthogonality, completeness
 , etc) and they can be drawn from a large dictionary of wavelets. This makes
 the wavelet transform a versatile tool for analysis of nonstationary data.
 But the wavelet transform is still a linear decomposition and hence suffers
@@ -210,7 +210,7 @@ which is centered at the origin in the figure above. The angle that the
 phasor rotates through in an infinitesimally small time period represents the
 instantaneous phase of the signal, and its time differential is the
 instantaneous frequency. Using this interpretation, let's try to compute the
-isntantaneous frequencies of the three signals::
+instantaneous frequencies of the three signals::
 
     >>> from scipy import angle, unwrap
     >>> omega_s1 = unwrap(angle(hs1))  # unwrapped instantaneous phase
@@ -240,11 +240,11 @@ signal is symmetric about the X-axis motivates the definition of an IMF.
 
     A function is called an intrinsic mode function when:
       1. The number of its extrema and zero-crossings differ at most by unity.
-      2. The mean of the local envelopes defined by it’s local maxima and
+      2. The mean of the local envelopes defined by its local maxima and
          that defined by its local minima should be zero at all times.
 
 Condition 1 ensures that there are no localized oscillations in the signal
-and it crosses the X-axis atleast once before it goes from one extremum to
+and it crosses the X-axis at least once before it goes from one extremum to
 another, which makes it adaptive. Condition 2 ensures meaningful
 instantaneous frequencies, as explained in the previous example. The next
 section explains the algorithm for extracting IMFs out of a signal.
@@ -268,7 +268,7 @@ The next tutorial demonstrates how EMD can be used with PyHHT.
 2.5 Properties of Intrinsic Mode Functions
 ++++++++++++++++++++++++++++++++++++++++++
 
-By virtue of the EMD algorithm, the decomosition is complete, in that the sum
+By virtue of the EMD algorithm, the decomposition is complete, in that the sum
 of the IMFs and the residue subtracted from the input signal leaves behind
 only a negligible residue. The decomposition is almost orthogonal. Also, as
 emphasized earlier, the greatest advantage of the IMFs are well-behaved
@@ -315,7 +315,7 @@ flexible and versatile with its use.
 
 Consider a dark room with a photosensitive device. Suppose a light flashes upon
 the device at a given instant. The Fourier interpretation of this phenomenon
-would be to consider a numbe of (ideally infinitely many) of frequencies which
+would be to consider a number of (ideally infinitely many) of frequencies which
 are in phase exactly at the time when the light is flashed. The frequencies
 interfere constructively at that instant to produce the flash of light and
 cancel each other out at all the other times. The truth of the matter remains
