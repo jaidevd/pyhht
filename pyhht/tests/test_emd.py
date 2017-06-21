@@ -81,7 +81,18 @@ class TestEMD(unittest.TestCase):
         signal += np.random.normal(size=signal.shape)
         engine = EMD(signal, maxiter=200)
         engine.decompose()
-        self.assertEqual(engine.nbit, 200)
+        self.assertLessEqual(engine.nbit, 200)
+
+    def test_fixe(self):
+        """Check if the fixe parameter is respected."""
+        fpath = op.join(op.abspath(op.dirname(__file__)), "testdata",
+                        "gabor.mat")
+        signal = loadmat(fpath)['gabor'].ravel()
+        signal = resample(signal, signal.shape[0] * 100)
+        signal += np.random.normal(size=signal.shape)
+        engine = EMD(signal, fixe=100)
+        engine.decompose()
+        self.assertEqual(engine.nbit, 100)
 
     def test_residue(self):
         """Test the residue of the emd output."""
@@ -92,6 +103,7 @@ class TestEMD(unittest.TestCase):
         n_maxima = argrelmax(imfs[n_imfs - 1, :])[0].shape[0]
         n_minima = argrelmin(imfs[n_imfs - 1, :])[0].shape[0]
         self.assertTrue(max(n_maxima, n_minima) <= 2)
+
 
 if __name__ == '__main__':
     unittest.main()
