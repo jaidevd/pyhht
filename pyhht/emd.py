@@ -263,7 +263,7 @@ class EmpiricalModeDecomposition(object):
         """
         # FIXME: This method needs a better name.
         if self.fixe:
-            stop_sift, moyenne = self.mean_and_amplitude(), 0
+            (moyenne, _, _, _), stop_sift = self.mean_and_amplitude(m), 0  # NOQA
         elif self.fixe_h:
             stop_count = 0
             try:
@@ -348,12 +348,7 @@ class EmpiricalModeDecomposition(object):
                 m = m - moyenne
 
                 # Computing mean and stopping criterion
-                if self.fixe:
-                    stop_sift, moyenne = self.stop_sifting_fixe()
-                elif self.fixe_h:
-                    stop_sift, moyenne, stop_count = self.stop_sifting_fixe_h()
-                else:
-                    stop_sift, moyenne = self.stop_sifting(m)
+                stop_sift, moyenne = self.stop_sifting(m)
 
                 self.nbit += 1
                 self.NbIt += 1
@@ -373,5 +368,6 @@ class EmpiricalModeDecomposition(object):
         if np.any(self.residue):
             self.imf.append(self.residue)
         return np.array(self.imf)
+
 
 EMD = EmpiricalModeDecomposition
