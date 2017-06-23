@@ -48,22 +48,23 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None):
     axis_extent = max(np.max(np.abs(imfs[:-1, :]), axis=0))
 
     # Plot original signal
-    ax = plt.subplot(n_imfs, 1, 1)
+    ax = plt.subplot(n_imfs + 1, 1, 1)
     ax.plot(time_samples, signal)
     ax.axis([time_samples[0], time_samples[-1], signal.min(), signal.max()])
     ax.tick_params(which='both', left=False, bottom=False, labelleft=False,
-            labelbottom=False)
+                   labelbottom=False)
     ax.grid(False)
     ax.set_ylabel('Signal')
     ax.set_title('Empirical Mode Decomposition')
 
     # Plot the IMFs
     for i in range(n_imfs - 1):
-        ax = plt.subplot(n_imfs, 1, i + 2)
+        print(i + 2)
+        ax = plt.subplot(n_imfs + 1, 1, i + 2)
         ax.plot(time_samples, imfs[i, :])
         ax.axis([time_samples[0], time_samples[-1], -axis_extent, axis_extent])
         ax.tick_params(which='both', left=False, bottom=False, labelleft=False,
-                labelbottom=False)
+                       labelbottom=False)
         ax.grid(False)
         ax.set_ylabel('imf' + str(i + 1))
 
@@ -72,7 +73,7 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None):
     ax.plot(time_samples, imfs[-1, :], 'r')
     ax.axis('tight')
     ax.tick_params(which='both', left=False, bottom=False, labelleft=False,
-            labelbottom=False)
+                   labelbottom=False)
     ax.grid(False)
     ax.set_ylabel('res.')
 
