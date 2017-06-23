@@ -104,6 +104,17 @@ class TestEMD(unittest.TestCase):
         n_minima = argrelmin(imfs[n_imfs - 1, :])[0].shape[0]
         self.assertTrue(max(n_maxima, n_minima) <= 2)
 
+    def test_optional_nbsym(self):
+        """Test if the optional nbsym parameter works when set to False. See
+        jaidevd/pyhht#29."""
+        fpath = op.join(op.abspath(op.dirname(__file__)), "testdata",
+                        "issue29.npy")
+        x = np.load(fpath)
+        emd = EMD(x, nbsym=False)
+        imfs = emd.decompose()
+        self.assertEqual(imfs.shape[0], 4)
+        np.testing.assert_allclose(x, imfs.sum(0))
+
 
 if __name__ == '__main__':
     unittest.main()

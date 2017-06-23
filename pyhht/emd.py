@@ -200,8 +200,13 @@ class EmpiricalModeDecomposition(object):
                     indmin, indmax, indzer = extr(y)
                     nem.append(len(indmin) + len(indmax))
                     nzm.append(len(indzer))
-                    tmin, tmax, zmin, zmax = boundary_conditions(y, self.t, m,
-                                                                 self.nbsym)
+                    if self.nbsym:
+                        tmin, tmax, zmin, zmax = boundary_conditions(y, self.t,
+                                                                     m, self.nbsym)
+                    else:
+                        tmin = np.r_[self.t[0], self.t[indmin], self.t[-1]]
+                        tmax = np.r_[self.t[0], self.t[indmax], self.t[-1]]
+                        zmin, zmax = m[tmin], m[tmax]
 
                     f = splrep(tmin, zmin)
                     spl = splev(self.t, f)
@@ -225,8 +230,13 @@ class EmpiricalModeDecomposition(object):
                     indmin, indmax, indzer = extr(y)
                     nem.append(len(indmin) + len(indmax))
                     nzm.append(len(indzer))
-                    tmin, tmax, zmin, zmax = boundary_conditions(y, self.t, m,
-                                                                 self.nbsym)
+                    if self.nbsym:
+                        tmin, tmax, zmin, zmax = boundary_conditions(y, self.t,
+                                                                     m, self.nbsym)
+                    else:
+                        tmin = np.r_[self.t[0], self.t[indmin], self.t[-1]]
+                        tmax = np.r_[self.t[0], self.t[indmax], self.t[-1]]
+                        zmin, zmax = m[tmin], m[tmax]
                     f = splrep(tmin, zmin)
                     spl = splev(self.t, f)
                     envmin[k, ] = np.exp(1j * phi) * spl
@@ -242,7 +252,13 @@ class EmpiricalModeDecomposition(object):
             indmin, indmax, indzer = extr(m)
             nem = len(indmin) + len(indmax)
             nzm = len(indzer)
-            tmin, tmax, mmin, mmax = boundary_conditions(m, self.t, m, self.nbsym)
+            if self.nbsym:
+                tmin, tmax, mmin, mmax = boundary_conditions(m, self.t, m,
+                                                             self.nbsym)
+            else:
+                tmin = np.r_[self.t[0], self.t[indmin], self.t[-1]]
+                tmax = np.r_[self.t[0], self.t[indmax], self.t[-1]]
+                mmin, mmax = m[tmin], m[tmax]
 
             f = splrep(tmin, mmin)
             envmin = splev(self.t, f)
