@@ -92,14 +92,14 @@ class EmpiricalModeDecomposition(object):
                 raise ValueError("x must have only one row or one column.")
         if x.shape[0] > 1:
             x = x.ravel()
-        if not np.all(np.isfinite(x)):
+        if np.any(np.isinf(x)):
             raise ValueError("All elements of x must be finite.")
         self.x = x
         self.ner = self.nzr = len(self.x)
         self.residue = self.x.copy()
 
         if t is None:
-            self.t = np.arange(np.max(x.shape))
+            self.t = np.arange(max(x.shape))
         else:
             if t.shape != self.x.shape:
                 raise ValueError("t must have the same dimensions as x.")
@@ -112,9 +112,6 @@ class EmpiricalModeDecomposition(object):
                 t = t.ravel()
             self.t = t
 
-        self.sdt = self.threshold_1 * np.ones((len(self.x),))
-        self.sd2t = self.threshold_2 * np.ones((len(self.x),))
-
         if fixe:
             self.maxiter = fixe
             if self.fixe_h:
@@ -125,7 +122,7 @@ class EmpiricalModeDecomposition(object):
         # should be a string for better readability. Also, the boolean should
         # be redundant in the signature of __init__
         if is_mode_complex is None:
-            is_mode_complex = not(np.all(np.isreal(self.x) * self.complex_version))
+            is_mode_complex = np.any(np.iscomplex(self.x))
         self.is_mode_complex = is_mode_complex
 
         self.imf = []
@@ -160,14 +157,11 @@ class EmpiricalModeDecomposition(object):
         >>> print(decomposer.io())
         0.0516420404972
         """
-
-        n = len(self.imf)
-        s = 0
-        for i in range(n):
-            for j in range(n):
-                if i != j:
-                    s += np.abs(np.sum(self.imf[i] * np.conj(self.imf[j])) / np.sum(self.x**2))
-        return 0.5 * s
+        imf = np.array(self.imf)
+        dp = np.dot(imf, np.conj(imf).T)
+        mask = np.logical_not(np.eye(len(self.imf)))
+        s = np.abs(dp[mask]).sum()
+        return s / (2 * np.sum(self.x ** 2))
 
     def stop_EMD(self):
         """Check if there are enough extrema (3) to continue sifting."""
