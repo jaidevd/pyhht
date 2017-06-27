@@ -160,8 +160,8 @@ class EmpiricalModeDecomposition(object):
         imf = np.array(self.imf)
         dp = np.dot(imf, np.conj(imf).T)
         mask = np.logical_not(np.eye(len(self.imf)))
-        s = dp[mask].sum()
-        return np.abs(s) / (2 * np.sum(self.x ** 2))
+        s = np.abs(dp[mask]).sum()
+        return s / (2 * np.sum(self.x ** 2))
 
     def stop_EMD(self):
         """Check if there are enough extrema (3) to continue sifting."""
