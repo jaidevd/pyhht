@@ -10,7 +10,6 @@
 Utility functions used to inspect EMD functionality.
 """
 
-from matplotlib.mlab import find
 import numpy as np
 from scipy.signal import argrelmax, argrelmin
 from scipy import interpolate, angle
@@ -169,12 +168,11 @@ def boundary_conditions(x, t, z=None, nbsym=2):
     zrmax = z[rmax]
     zrmin = z[rmin]
 
-    tmin = map(np.array, [tlmin, t[indmin], trmin])
-    tmax = map(np.array, [tlmax, t[indmax], trmax])
-    zmin = map(np.array, [zlmin, z[indmin], zrmin])
-    zmax = map(np.array, [zlmax, z[indmax], zrmax])
+    tmin = np.r_[tlmin, t[indmin], trmin]
+    tmax = np.r_[tlmax, t[indmax], trmax]
+    zmin = np.r_[zlmin, z[indmin], zrmin]
+    zmax = np.r_[zlmax, z[indmax], zrmax]
 
-    tmin, tmax, zmin, zmax = map(np.hstack, [tmin, tmax, zmin, zmax])
     return tmin, tmax, zmin, zmax
 
 
@@ -232,15 +230,15 @@ def extr(x):
 
     x1 = x[:m - 1]
     x2 = x[1:m]
-    indzer = find(x1 * x2 < 0)
+    indzer = np.where(x1 * x2 < 0)[0]
     if np.any(x == 0):
-        iz = find(x == 0)
+        iz = np.where(x == 0)[0]
         indz = []
         if np.any(np.diff(iz) == 1):
             zer = x == 0
             dz = np.diff(np.r_[0, zer, 0])
-            debz = find(dz == 1)
-            finz = find(dz == -1) - 1
+            debz = np.where(dz == 1)[0]
+            finz = np.where(dz == -1)[0] - 1
             indz = np.round((debz + finz) / 2)
         else:
             indz = iz
