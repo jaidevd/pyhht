@@ -39,14 +39,13 @@ class TestUtils(unittest.TestCase):
         x[-1] = 0
         x[0] = 0
         t = np.arange(7)
-        z = x
-        tmin, tmax, zmin, zmax = utils.boundary_conditions(x, t, z, 2)
+        tmin, tmax, zmin, zmax = utils.boundary_conditions(x, t, 2)
         self.assertEqual(zmin.sum(), -zmin.shape[0])
         self.assertEqual(zmax.sum(), zmax.shape[0])
         a = np.diff(tmin)
         b = np.diff(tmax)
         np.testing.assert_allclose(a, 2 * np.ones((a.shape[0])))
-        np.testing.assert_allclose(b, 2 * np.ones((b.shape[0])))
+        np.testing.assert_allclose(b, np.array([2, 4, 2, 4, 2]))
 
     def test_extrema_sinusoid(self):
         """
@@ -101,6 +100,7 @@ class TestUtils(unittest.TestCase):
         neighbours[:, 1] = self.random_data[indzer + 1]
         p = np.prod(neighbours, axis=1)
         self.assertTrue(np.all(p < 0))
+
 
 if __name__ == '__main__':
     unittest.main()
