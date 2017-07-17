@@ -155,7 +155,7 @@ class EmpiricalModeDecomposition(object):
         >>> decomposer = EMD(x)
         >>> imfs = decomposer.decompose()
         >>> print(decomposer.io())
-        0.0516420404972
+        0.0170853675933
         """
         imf = np.array(self.imf)
         dp = np.dot(imf, np.conj(imf).T)

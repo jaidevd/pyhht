@@ -59,7 +59,7 @@ def inst_freq(x, t=None, L=1):
     return fnorm, t
 
 
-def boundary_conditions(x, t, z=None, nbsym=2):
+def boundary_conditions(signal, time_samples, z=None, nbsym=2):
     """
     Extend the signal beyond it's bounds w.r.t mirror symmetry.
 
@@ -80,100 +80,27 @@ def boundary_conditions(x, t, z=None, nbsym=2):
     >>> import numpy as np
     >>> signal = np.array([-1, 1, -1, 1, -1])
     >>> print(boundary_conditions(signal, np.arange(5)))
-    (array([0, 1, 2, 4, 6]), array([-1,  1,  3,  5,  7]), array([-1,  1, -1, -1, -1]), array([1, 1, 1, 1, 1]))
+    (array([-2,  2,  6]), array([-3, -1,  1,  3,  5,  7]), array([-1, -1, -1]), array([1, 1, 1, 1, 1, 1]))
     """
-    indmax = argrelmax(x)[0]
-    indmin = argrelmin(x)[0]
-    lx = x.shape[0] - 1
-    if indmin.shape[0] + indmax.shape[0] < 3:
+    tmax = argrelmax(signal)[0]
+    maxima = signal[tmax]
+    tmin = argrelmin(signal)[0]
+    minima = signal[tmin]
+
+    if tmin.shape[0] + tmax.shape[0] < 3:
         raise ValueError("Not enough extrema.")
 
-    if indmax[0] < indmin[0]:
-        if x[0] > x[indmin[0]]:
-            lmax = indmax[1:np.min([indmax.shape[0], nbsym + 1])][::-1]
-            lmin = indmin[:np.min([indmin.shape[0], nbsym])][::-1]
-            lsym = indmax[0]
-        else:
-            lmax = indmax[1:np.min([indmax.shape[0], nbsym])][::-1]
-            lmin = indmin[:np.min([indmin.shape[0], nbsym - 1])][::-1]
-            lmin = np.hstack((lmin, [1]))
-            lsym = 1
-    else:
-        if x[0] < x[indmax[0]]:
-            lmax = indmax[:np.min([indmax.shape[0], nbsym])][::-1]
-            lmin = indmin[1:np.min([indmin.shape[0], nbsym + 1])][::-1]
-            lsym = indmin[0]
-        else:
-            lmax = indmax[:np.min([indmin.shape[0], nbsym - 1])][::-1]
-            lmax = np.hstack((lmax, [1]))
-            lmin = indmin[:np.min([indmax.shape[0], nbsym])][::-1]
-            lsym = 1
+    loffset_max = time_samples[tmax[:nbsym]] - time_samples[0]
+    roffset_max = time_samples[-1] - time_samples[tmax[-nbsym:]]
+    new_tmax = np.r_[time_samples[0] - loffset_max[::-1], time_samples[tmax], roffset_max[::-1] + time_samples[-1]]
+    new_vmax = np.r_[maxima[:nbsym][::-1], maxima, maxima[-nbsym:][::-1]]
 
-    if indmax[-1] < indmin[-1]:
-        if x[-1] < x[indmax[-1]]:
-            rmax = indmax[(max([indmax.shape[0] - nbsym + 1, 1]) - 1):][::-1]
-            rmin = indmin[(max([indmin.shape[0] - nbsym, 1]) - 1):-1][::-1]
-            rsym = indmin[-1]
-        else:
-            rmax = indmax[max(indmax.shape[0] - nbsym + 1, 0):indmax.shape[0]][::-1]
-            rmax = np.hstack(([lx], rmax))
-            rmin = indmin[max(indmin.shape[0] - nbsym, 0):][::-1]
-            rsym = lx
-    else:
-        if x[-1] > x[indmin[-1]]:
-            rmax = indmax[max(indmax.shape[0] - nbsym - 1, 0):-1][::-1]
-            rmin = indmin[max(indmin.shape[0] - nbsym, 0):][::-1]
-            rsym = indmax[-1]
-        else:
-            rmax = indmax[max(indmax.shape[0] - nbsym, 0):][::-1]
-            rmin = indmin[max(indmin.shape[0] - nbsym + 1, 0):][::-1]
-            rmin = np.hstack(([lx], rmin))
-            rsym = lx
+    loffset_min = time_samples[tmin[:nbsym]] - time_samples[0]
+    roffset_min = time_samples[-1] - time_samples[tmin[-nbsym:]]
 
-    tlmin = 2 * t[lsym] - t[lmin]
-    tlmax = 2 * t[lsym] - t[lmax]
-    trmin = 2 * t[rsym] - t[rmin]
-    trmax = 2 * t[rsym] - t[rmax]
-
-    # In case symmetrized parts do not extend enough
-    if (tlmin[0] > t[0]) or (tlmax[0] > t[1]):
-        if lsym == indmax[0]:
-            lmax = indmax[:np.min((indmax.shape[0], nbsym))][::-1]
-        else:
-            lmin = indmin[:np.min((indmin.shape[0], nbsym))][::-1]
-        if lsym == 1:
-            raise Exception("Bug")
-        lsym = 1
-        tlmin = 2 * t[lsym] - t[lmin]
-        tlmax = 2 * t[lsym] - t[lmax]
-
-    if (trmin[-1] < t[lx]) or (trmax[-1] < t[lx]):
-        if rsym == indmax.shape[0]:
-            rmax = indmax[np.max([indmax.shape[0] - nbsym + 1,
-                                 1]):indmax.shape[0]][::-1]
-        else:
-            rmin = indmin[np.max([indmax.shape[0] - nbsym + 1,
-                                 1]):indmin.shape[0]][::-1]
-
-        if rsym == lx:
-            raise Exception("bug")
-        rsym = lx
-        trmin = 2 * t[rsym] - t[rmin]
-        trmax = 2 * t[rsym] - t[rmax]
-
-    if z is None:
-        z = x
-    zlmax = z[lmax]
-    zlmin = z[lmin]
-    zrmax = z[rmax]
-    zrmin = z[rmin]
-
-    tmin = np.r_[tlmin, t[indmin], trmin]
-    tmax = np.r_[tlmax, t[indmax], trmax]
-    zmin = np.r_[zlmin, z[indmin], zrmin]
-    zmax = np.r_[zlmax, z[indmax], zrmax]
-
-    return tmin, tmax, zmin, zmax
+    new_tmin = np.r_[time_samples[0] - loffset_min[::-1], time_samples[tmin], roffset_min[::-1] + time_samples[-1]]
+    new_vmin = np.r_[minima[:nbsym][::-1], minima, minima[-nbsym:][::-1]]
+    return new_tmin, new_tmax, new_vmin, new_vmax
 
 
 def get_envelops(x, t=None):
