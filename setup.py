@@ -7,5 +7,7 @@ setup(
     version='0.1.0',
     author='Jaidev Deshpande',
     author_email='deshpande.jaidev@gmail.com',
-    packages=['pyhht']
+    packages=['pyhht'],
+    license="New BSD License",
+    install_requires=['numpy', 'scipy', 'matplotlib', 'six']
 )
