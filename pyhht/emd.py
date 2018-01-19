@@ -57,6 +57,21 @@ class EmpiricalModeDecomposition(object):
         :type nbsym: int
         :return: Array of shape [n_imfs + 1, length(x)]
         :rtype: numpy.ndarray
+        :References:
+
+        .. [1] Huang H. et al. 1998 'The empirical mode decomposition and the \
+                Hilbert spectrum for nonlinear and non-stationary time series \
+                analysis.' \
+                Procedings of the Royal Society 454, 903-995
+
+        .. [2] Zhao J., Huang D. 2001 'Mirror extending and circular spline \
+                function for empirical mode decomposition method'. \
+                Journal of Zhejiang University (Science) V.2, No.3, 247-252
+
+        .. [3] Rato R.T., Ortigueira M.D., Batista A.G 2008 'On the HHT, its \
+                problems, and some solutions.' \
+                Mechanical Systems and Signal Processing 22 1374-1394
+
         :Example:
 
         >>> from pyhht.visualization import plot_imfs
