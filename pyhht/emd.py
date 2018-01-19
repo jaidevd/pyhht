@@ -169,8 +169,8 @@ class EmpiricalModeDecomposition(object):
         >>> x = modes + t
         >>> decomposer = EMD(x)
         >>> imfs = decomposer.decompose()
-        >>> print(decomposer.io())
-        0.0170853675933
+        >>> print('%.3f' % decomposer.io())
+        0.017
         """
         imf = np.array(self.imf)
         dp = np.dot(imf, np.conj(imf).T)
