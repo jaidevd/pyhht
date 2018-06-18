@@ -1,8 +1,8 @@
 import os.path as op
 from numpy import pi, sin, linspace
 from scipy.io import loadmat
-import matplotlib
-matplotlib.use('agg')
+import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 from matplotlib.testing.decorators import image_comparison  # noqa: F402
 from pyhht.emd import EMD  # noqa: F402
 from pyhht.visualization import plot_imfs  # noqa: F402
