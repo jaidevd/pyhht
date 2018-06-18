@@ -1,9 +1,11 @@
 import os.path as op
 from numpy import pi, sin, linspace
-from matplotlib.testing.decorators import image_comparison
 from scipy.io import loadmat
 from pyhht.emd import EMD
-from pyhht.visualization import plot_imfs
+import matplotlib
+matplotlib.use('agg')
+from matplotlib.testing.decorators import image_comparison  # noqa: F402
+from pyhht.visualization import plot_imfs  # noqa: F402
 
 
 @image_comparison(baseline_images=['imfs'], extensions=['png'])
