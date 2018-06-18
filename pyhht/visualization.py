@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_imfs(signal, imfs, time_samples=None, fignum=None):
+def plot_imfs(signal, imfs, time_samples=None, fignum=None, show=True):
     """Visualize decomposed signals.
 
     :param signal: Analyzed signal
@@ -39,6 +39,7 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None):
 
     .. plot:: ../../docs/examples/simple_emd.py
     """
+    is_bivariate = np.any(np.iscomplex(signal))
     if time_samples is None:
         time_samples = np.arange(signal.shape[0])
 
@@ -49,7 +50,11 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None):
 
     # Plot original signal
     ax = plt.subplot(n_imfs + 1, 1, 1)
-    ax.plot(time_samples, signal)
+    if is_bivariate:
+        ax.plot(time_samples, np.real(signal), 'b')
+        ax.plot(time_samples, np.imag(signal), 'k--')
+    else:
+        ax.plot(time_samples, signal)
     ax.axis([time_samples[0], time_samples[-1], signal.min(), signal.max()])
     ax.tick_params(which='both', left=False, bottom=False, labelleft=False,
                    labelbottom=False)
@@ -61,7 +66,11 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None):
     for i in range(n_imfs - 1):
         print(i + 2)
         ax = plt.subplot(n_imfs + 1, 1, i + 2)
-        ax.plot(time_samples, imfs[i, :])
+        if is_bivariate:
+            ax.plot(time_samples, np.real(imfs[i]), 'b')
+            ax.plot(time_samples, np.imag(imfs[i]), 'k--')
+        else:
+            ax.plot(time_samples, imfs[i])
         ax.axis([time_samples[0], time_samples[-1], -axis_extent, axis_extent])
         ax.tick_params(which='both', left=False, bottom=False, labelleft=False,
                        labelbottom=False)
@@ -70,11 +79,16 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None):
 
     # Plot the residue
     ax = plt.subplot(n_imfs + 1, 1, n_imfs + 1)
-    ax.plot(time_samples, imfs[-1, :], 'r')
+    if is_bivariate:
+        ax.plot(time_samples, np.real(imfs[-1]), 'r')
+        ax.plot(time_samples, np.imag(imfs[-1]), 'r--')
+    else:
+        ax.plot(time_samples, imfs[-1])
     ax.axis('tight')
     ax.tick_params(which='both', left=False, bottom=False, labelleft=False,
                    labelbottom=False)
     ax.grid(False)
     ax.set_ylabel('res.')
 
-    plt.show()
+    if show:  # pragma: no cover
+        plt.show()

@@ -19,8 +19,7 @@ class EmpiricalModeDecomposition(object):
     """The EMD class."""
 
     def __init__(self, x, t=None, threshold_1=0.05, threshold_2=0.5, alpha=0.05,
-                 is_mode_complex=None, ndirs=4, fixe=0, maxiter=2000,
-                 fixe_h=0, n_imfs=0, nbsym=2):
+                 ndirs=4, fixe=0, maxiter=2000, fixe_h=0, n_imfs=0, nbsym=2, bivariate_mode='bbox_center'):
         """Empirical mode decomposition.
 
         :param x: A vector on which to perform empirical mode decomposition.
@@ -31,7 +30,6 @@ class EmpiricalModeDecomposition(object):
             :math:`\theta_{2}` in [1] (Default: 0.5)
         :param alpha: Tolerance for the stopping criterion, corresponding to
             :math:`\alpha` in [1] (Default: 0.05)
-        :param is_mode_complex: Whether the input signal is complex.
         :param ndirs: Number of directions in which envelopes are computed.
             (Default: 4)
         :param fixe: Number of sifting iterations to perform for each mode. The
@@ -43,12 +41,14 @@ class EmpiricalModeDecomposition(object):
         :param fixe_h:
         :param n_imfs: Number if IMFs to extract.
         :param nbsym: Number of points to mirror when calculating envelopes.
+        :param bivariate_mode: The algorithm to use for bivariate EMD as mentioned in [4].
+            Can be one of 'centroid' or 'bbox_center', corresponding respectively to the first and
+            second algorithms as described in 4. This is ignored if the signal is real-valued.
         :type x: array-like
         :type t: array-like
         :type threshold_1: float
         :type threshold_2: float
         :type alpha: float
-        :type is_mode_complex: bool
         :type ndirs: int
         :type fixe: int
         :type maxiter: int
@@ -72,6 +72,11 @@ class EmpiricalModeDecomposition(object):
                 problems, and some solutions.' \
                 Mechanical Systems and Signal Processing 22 1374-1394
 
+        .. [4] Gabriel Rilling, Patrick Flandrin, Paulo Gonçalves, \
+                Jonathan M. Lilly. Bivariate Empirical Mode Decomposition. \
+                10 pages, 3 figures. Submitted to Signal Processing Letters, \
+                IEEE. Matlab/C codes and additional .. 2007. <ensl-00137611>
+
         :Example:
 
         >>> from pyhht.visualization import plot_imfs
@@ -92,7 +97,6 @@ class EmpiricalModeDecomposition(object):
         self.maxiter = maxiter
         self.fixe_h = fixe_h
         self.ndirs = ndirs
-        self.complex_version = 2
         self.nbit = 0
         self.Nbit = 0
         self.n_imfs = n_imfs
@@ -133,12 +137,9 @@ class EmpiricalModeDecomposition(object):
                 raise TypeError("Cannot use both fixe and fixe_h modes")
         self.fixe = fixe
 
-        # FIXME: `is_mode_complex` should be a boolean and self.complex_version
-        # should be a string for better readability. Also, the boolean should
-        # be redundant in the signature of __init__
-        if is_mode_complex is None:
-            is_mode_complex = np.any(np.iscomplex(self.x))
-        self.is_mode_complex = is_mode_complex
+        self.is_bivariate = np.any(np.iscomplex(self.x))
+        if self.is_bivariate:
+            self.bivariate_mode = bivariate_mode
 
         self.imf = []
         self.nbits = []
@@ -171,6 +172,7 @@ class EmpiricalModeDecomposition(object):
         >>> imfs = decomposer.decompose()
         >>> print('%.3f' % decomposer.io())
         0.017
+
         """
         imf = np.array(self.imf)
         dp = np.dot(imf, np.conj(imf).T)
@@ -180,13 +182,14 @@ class EmpiricalModeDecomposition(object):
 
     def stop_EMD(self):
         """Check if there are enough extrema (3) to continue sifting."""
-        if self.is_mode_complex:
-            ner = []
+        if self.is_bivariate:
+            stop = False
             for k in range(self.ndirs):
                 phi = k * pi / self.ndirs
                 indmin, indmax, _ = extr(np.real(np.exp(1j * phi) * self.residue))
-                ner.append(len(indmin) + len(indmax))
-            stop = np.any(ner < 3)
+                if len(indmin) + len(indmax) < 3:
+                    stop = True
+                    break
         else:
             indmin, indmax, _ = extr(self.residue)
             ner = len(indmin) + len(indmax)
@@ -197,8 +200,8 @@ class EmpiricalModeDecomposition(object):
         """ Computes the mean of the envelopes and the mode amplitudes."""
         # FIXME: The spline interpolation may not be identical with the MATLAB
         # implementation. Needs further investigation.
-        if self.is_mode_complex:
-            if self.is_mode_complex == 1:
+        if self.is_bivariate:
+            if self.bivariate_mode == 'centroid':
                 nem = []
                 nzm = []
                 envmin = np.zeros((self.ndirs, len(self.t)))
@@ -228,11 +231,11 @@ class EmpiricalModeDecomposition(object):
                 envmoy = np.mean((envmin + envmax) / 2, axis=0)
                 amp = np.mean(abs(envmax - envmin), axis=0) / 2
 
-            elif self.is_mode_complex == 2:
+            elif self.bivariate_mode == 'bbox_center':
                 nem = []
                 nzm = []
-                envmin = np.zeros((self.ndirs, len(self.t)))
-                envmax = np.zeros((self.ndirs, len(self.t)))
+                envmin = np.zeros((self.ndirs, len(self.t)), dtype=complex)
+                envmax = np.zeros((self.ndirs, len(self.t)), dtype=complex)
                 for k in range(self.ndirs):
                     phi = k * pi / self.ndirs
                     y = np.real(np.exp(-1j * phi) * m)
@@ -277,6 +280,9 @@ class EmpiricalModeDecomposition(object):
 
             envmoy = (envmin + envmax) / 2
             amp = np.abs(envmax - envmin) / 2.0
+        if self.is_bivariate:
+            nem = np.array(nem)
+            nzm = np.array(nzm)
 
         return envmoy, nem, nzm, amp
 
@@ -316,7 +322,7 @@ class EmpiricalModeDecomposition(object):
             sx = np.abs(envmoy) / amp
             stop = not(((np.mean(sx > self.threshold_1) > self.alpha) or
                         np.any(sx > self.threshold_2)) and np.all(nem > 2))
-            if not self.is_mode_complex:
+            if not self.is_bivariate:
                 stop = stop and not(np.abs(nzm - nem) > 1)
             stop_sift = stop
             moyenne = envmoy
@@ -362,7 +368,7 @@ class EmpiricalModeDecomposition(object):
             # SIFTING LOOP:
             while not(stop_sift) and (self.nbit < self.maxiter):
 
-                if (not(self.is_mode_complex) and (self.nbit > self.maxiter / 5) and
+                if (not(self.is_bivariate) and (self.nbit > self.maxiter / 5) and
                         self.nbit % np.floor(self.maxiter / 10) == 0 and
                         not(self.fixe) and self.nbit > 100):
                     print("Mode " + str(self.k) + ", Iteration " + str(self.nbit))
