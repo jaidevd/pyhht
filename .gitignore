@@ -61,3 +61,5 @@ target/
 
 .vscode
 .noseids
+cover/
+result_images/

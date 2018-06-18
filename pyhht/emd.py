@@ -172,6 +172,7 @@ class EmpiricalModeDecomposition(object):
         >>> imfs = decomposer.decompose()
         >>> print('%.3f' % decomposer.io())
         0.017
+
         """
         imf = np.array(self.imf)
         dp = np.dot(imf, np.conj(imf).T)
@@ -182,12 +183,13 @@ class EmpiricalModeDecomposition(object):
     def stop_EMD(self):
         """Check if there are enough extrema (3) to continue sifting."""
         if self.is_bivariate:
-            ner = []
+            stop = False
             for k in range(self.ndirs):
                 phi = k * pi / self.ndirs
                 indmin, indmax, _ = extr(np.real(np.exp(1j * phi) * self.residue))
-                ner.append(len(indmin) + len(indmax))
-            stop = np.any(ner < 3)
+                if len(indmin) + len(indmax) < 3:
+                    stop = True
+                    break
         else:
             indmin, indmax, _ = extr(self.residue)
             ner = len(indmin) + len(indmax)
@@ -232,8 +234,8 @@ class EmpiricalModeDecomposition(object):
             elif self.bivariate_mode == 'bbox_center':
                 nem = []
                 nzm = []
-                envmin = np.zeros((self.ndirs, len(self.t)))
-                envmax = np.zeros((self.ndirs, len(self.t)))
+                envmin = np.zeros((self.ndirs, len(self.t)), dtype=complex)
+                envmax = np.zeros((self.ndirs, len(self.t)), dtype=complex)
                 for k in range(self.ndirs):
                     phi = k * pi / self.ndirs
                     y = np.real(np.exp(-1j * phi) * m)
@@ -278,6 +280,9 @@ class EmpiricalModeDecomposition(object):
 
             envmoy = (envmin + envmax) / 2
             amp = np.abs(envmax - envmin) / 2.0
+        if self.is_bivariate:
+            nem = np.array(nem)
+            nzm = np.array(nzm)
 
         return envmoy, nem, nzm, amp
 
