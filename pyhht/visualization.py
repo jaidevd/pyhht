@@ -14,19 +14,31 @@ import numpy as np
 
 
 def plot_imfs(signal, imfs, time_samples=None, fignum=None, show=True):
-    """Visualize decomposed signals.
+    """
+    Plot the signal, IMFs and residue.
 
-    :param signal: Analyzed signal
-    :param imfs: intrinsic mode functions of the signal
-    :param time_samples: time instants
-    :param fignum: (optional) number of the figure to display
-    :type signal: array-like
-    :type time_samples: array-like
-    :type imfs: array-like of shape (n_imfs, length_of_signal)
-    :type fignum: int
-    :return: None
-    :Example:
+    Parameters
+    ----------
+    signal : array-like, shape (n_samples,)
+        The input signal.
+    imfs : array-like, shape (n_imfs, n_samples)
+        Matrix of IMFs as generated with the `EMD.decompose` method.
+    time_samples : array-like, shape (n_samples), optional
+        Time instants of the signal samples.
+        (defaults to `np.arange(1, len(signal))`)
+    fignum : int, optional
+        Matplotlib figure number (by default a new figure is created)
+    show : bool, optional
+        Whether to display the plot. Defaults to True, set to False if further
+        plotting needs to be done.
 
+    Returns
+    -------
+    `matplotlib.figure.Figure`
+        The figure (new or existing) in which the decomposition is plotted.
+
+    Examples
+    --------
     >>> from pyhht.visualization import plot_imfs
     >>> import numpy as np
     >>> from pyhht import EMD
@@ -38,6 +50,7 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None, show=True):
     >>> plot_imfs(x, imfs, t) #doctest: +SKIP
 
     .. plot:: ../../docs/examples/simple_emd.py
+
     """
     is_bivariate = np.any(np.iscomplex(signal))
     if time_samples is None:
@@ -45,7 +58,7 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None, show=True):
 
     n_imfs = imfs.shape[0]
 
-    plt.figure(num=fignum)
+    fig = plt.figure(num=fignum)
     axis_extent = max(np.max(np.abs(imfs[:-1, :]), axis=0))
 
     # Plot original signal
@@ -92,3 +105,4 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None, show=True):
 
     if show:  # pragma: no cover
         plt.show()
+    return fig

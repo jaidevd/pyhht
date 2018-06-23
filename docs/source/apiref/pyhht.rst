@@ -1,27 +1,34 @@
 pyhht package
 =============
 
+Subpackages
+-----------
+
+.. toctree::
+
+    pyhht.tests
+
 Submodules
 ----------
 
-pyhht.emd module
-----------------
+pyhht\.emd module
+-----------------
 
 .. automodule:: pyhht.emd
     :members:
     :undoc-members:
     :show-inheritance:
 
-pyhht.utils module
-------------------
+pyhht\.utils module
+-------------------
 
 .. automodule:: pyhht.utils
     :members:
     :undoc-members:
     :show-inheritance:
 
-pyhht.visualization module
---------------------------
+pyhht\.visualization module
+---------------------------
 
 .. automodule:: pyhht.visualization
     :members:
