@@ -1,13 +1,6 @@
 pyhht package
 =============
 
-Subpackages
------------
-
-.. toctree::
-
-    pyhht.tests
-
 Submodules
 ----------
 
