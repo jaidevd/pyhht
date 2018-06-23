@@ -94,9 +94,15 @@ def boundary_conditions(signal, time_samples, z=None, nbsym=2):
     >>> from __future__ import print_function
     >>> import numpy as np
     >>> signal = np.array([-1, 1, -1, 1, -1])
-    >>> print(boundary_conditions(signal, np.arange(5)))
-    (array([-2,  2,  6]), array([-3, -1,  1,  3,  5,  7]),
-     array([-1, -1, -1]), array([1, 1, 1, 1, 1, 1]))
+    >>> tmin, tmax, vmin, vmax = boundary_conditions(signal, np.arange(5))
+    >>> tmin
+    array([-2,  2,  6])
+    >>> tmax
+    array([-3, -1,  1,  3,  5,  7])
+    >>> vmin
+    array([-1, -1, -1])
+    >>> vmax
+    array([1, 1, 1, 1, 1, 1])
 
     """
     tmax = argrelmax(signal)[0]

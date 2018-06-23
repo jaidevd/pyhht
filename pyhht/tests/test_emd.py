@@ -90,9 +90,9 @@ class TestEMD(unittest.TestCase):
         signal = loadmat(fpath)['gabor'].ravel()
         signal = resample(signal, signal.shape[0] * 100)
         signal += np.random.normal(size=signal.shape)
-        engine = EMD(signal, fixe=100)
+        engine = EMD(signal, fixe=100, n_imfs=3)
         engine.decompose()
-        self.assertEqual(engine.nbit, 100)
+        self.assertListEqual(engine.nbits, [100] * 3)
 
     def test_residue(self):
         """Test the residue of the emd output."""
