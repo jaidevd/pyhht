@@ -18,46 +18,62 @@ from pyhht.utils import extr, boundary_conditions
 class EmpiricalModeDecomposition(object):
     """The EMD class."""
 
-    def __init__(self, x, t=None, threshold_1=0.05, threshold_2=0.5, alpha=0.05,
-                 ndirs=4, fixe=0, maxiter=2000, fixe_h=0, n_imfs=0, nbsym=2, bivariate_mode='bbox_center'):
+    def __init__(self, x, t=None, threshold_1=0.05, threshold_2=0.5,
+                 alpha=0.05, ndirs=4, fixe=0, maxiter=2000, fixe_h=0, n_imfs=0,
+                 nbsym=2, bivariate_mode='bbox_center'):
         """Empirical mode decomposition.
 
-        :param x: A vector on which to perform empirical mode decomposition.
-        :param t: Sampling time instants.
-        :param threshold_1: Threshold for the stopping criterion, corresponding to
-            :math:`\theta_{1}` in [1] (Default: 0.05)
-        :param threshold_2: Threshold for the stopping criterion, corresponding to
-            :math:`\theta_{2}` in [1] (Default: 0.5)
-        :param alpha: Tolerance for the stopping criterion, corresponding to
-            :math:`\alpha` in [1] (Default: 0.05)
-        :param ndirs: Number of directions in which envelopes are computed.
-            (Default: 4)
-        :param fixe: Number of sifting iterations to perform for each mode. The
-            default value is ``None``, in which case the default stopping criterion
-            is used. If not ``None``, each mode will be a result of exactly
-            ``fixe`` sifting iterations.
-        :param maxiter: Number of maximum sifting iterations for the
-            computation of each mode. (Default: 2000)
-        :param fixe_h:
-        :param n_imfs: Number if IMFs to extract.
-        :param nbsym: Number of points to mirror when calculating envelopes.
-        :param bivariate_mode: The algorithm to use for bivariate EMD as mentioned in [4].
-            Can be one of 'centroid' or 'bbox_center', corresponding respectively to the first and
-            second algorithms as described in 4. This is ignored if the signal is real-valued.
-        :type x: array-like
-        :type t: array-like
-        :type threshold_1: float
-        :type threshold_2: float
-        :type alpha: float
-        :type ndirs: int
-        :type fixe: int
-        :type maxiter: int
-        :type fixe_h: int
-        :type n_imfs: int
-        :type nbsym: int
-        :return: Array of shape [n_imfs + 1, length(x)]
-        :rtype: numpy.ndarray
-        :References:
+        Parameters
+        ----------
+        x : array-like, shape (n_samples,)
+            The signal on which to perform EMD
+        t : array-like, shape (n_samples,), optional
+            The timestamps of the signal.
+        threshold_1 : float, optional
+            Threshold for the stopping criterion, corresponding to
+            :math:`\theta_{1}` in [1]. Defaults to 0.05.
+        threshold_2 : float, optional
+            Threshold for the stopping criterion, corresponding to
+            :math:`\theta_{2}` in [1]. Defaults to 0.5.
+        alpha : float, optional
+            Tolerance for the stopping criterion, corresponding to
+            :math:`\alpha` in [1]. Defaults to 0.05.
+        ndirs : int, optional
+            Number of directions in which interpolants for envelopes are
+            computed for bivariate EMD. Defaults to 4. This is ignored if the
+            signal is real valued.
+        fixe : int, optional
+            Number of sifting iterations to perform for each IMF. By default,
+            the stopping criterion mentioned in [1] is used. If set to a
+            positive integer, each mode is either the result of exactly
+            `fixe` number of sifting iterations, or until a pure IMF is
+            found, whichever is sooner.
+        maxiter : int, optional
+            Upper limit of the number of sifting iterations for each mode.
+            Defaults to 2000.
+        n_imfs : int, optional
+            Number of IMFs to extract. By default, this is ignored and
+            decomposition is continued until a monotonic trend is left in the
+            residue.
+        nbsym : int, optional
+            Number of extrema to use to mirror the signals on each side of
+            their boundaries.
+        bivariate_mode : str, optional
+            The algorithm to be used for bivariate EMD as described in [4].
+            Can be one of 'centroid' or 'bbox_center'. This is ignored if the
+            signal is real valued.
+
+        Attributes
+        ----------
+        is_bivariate : bool
+            Whether the decomposer performs bivariate EMD. This is
+            automatically determined by the input value. This is True if at
+            least one non-zero imaginary component is found in the signal.
+        nbits : list
+            List of number of sifting iterations it took to extract each IMF.
+
+        References
+        ----------
 
         .. [1] Huang H. et al. 1998 'The empirical mode decomposition and the \
                 Hilbert spectrum for nonlinear and non-stationary time series \
@@ -77,8 +93,8 @@ class EmpiricalModeDecomposition(object):
                 10 pages, 3 figures. Submitted to Signal Processing Letters, \
                 IEEE. Matlab/C codes and additional .. 2007. <ensl-00137611>
 
-        :Example:
-
+        Examples
+        --------
         >>> from pyhht.visualization import plot_imfs
         >>> import numpy as np
         >>> t = np.linspace(0, 1, 1000)
@@ -89,6 +105,7 @@ class EmpiricalModeDecomposition(object):
         >>> plot_imfs(x, imfs, t) #doctest: +SKIP
 
         .. plot:: ../../docs/examples/simple_emd.py
+
         """
 
         self.threshold_1 = threshold_1
@@ -147,22 +164,28 @@ class EmpiricalModeDecomposition(object):
         # FIXME: Masking disabled because it seems to be recursive.
 #        if np.any(mask):
 #            if mask.shape != x.shape:
-#                raise TypeError("Masking signal must have the same dimensions" +
-#                                "as the input signal x.")
+#                raise TypeError("Masking signal must have the same",
+#                                "dimensions as the input signal x.")
 #            if mask.shape[0]>1:
 #                mask = mask.ravel()
 #            imf1 = emd(x+mask, opts)
 
     def io(self):
-        """Compute the index of orthoginality, as defined by:
+        r"""Compute the index of orthoginality, as defined by:
 
-            .. math:: \sum_{i, j=1, i\neq j}^{N} \frac{\|C_{i}\overline{C_{j}}\|}{\|x\|^2}
+        .. math::
+
+            \sum_{i,j=1,i\neq j}^{N}\frac{\|C_{i}\overline{C_{j}}\|}{\|x\|^2}
 
         Where :math:`C_{i}` is the :math:`i` th IMF.
 
-        :return: Index of orthogonality.
-        :rtype: float
-        :Example:
+        Returns
+        -------
+        float
+            Index of orthogonality. Lower values are better.
+
+        Examples
+        --------
 
         >>> import numpy as np
         >>> t = np.linspace(0, 1, 1000)
@@ -181,12 +204,21 @@ class EmpiricalModeDecomposition(object):
         return s / (2 * np.sum(self.x ** 2))
 
     def stop_EMD(self):
-        """Check if there are enough extrema (3) to continue sifting."""
+        """Check if there are enough extrema (3) to continue sifting.
+
+        Returns
+        -------
+        bool
+            Whether to stop further cubic spline interpolation for lack of
+            local extrema.
+
+        """
         if self.is_bivariate:
             stop = False
             for k in range(self.ndirs):
                 phi = k * pi / self.ndirs
-                indmin, indmax, _ = extr(np.real(np.exp(1j * phi) * self.residue))
+                indmin, indmax, _ = extr(
+                    np.real(np.exp(1j * phi) * self.residue))
                 if len(indmin) + len(indmax) < 3:
                     stop = True
                     break
@@ -197,7 +229,20 @@ class EmpiricalModeDecomposition(object):
         return stop
 
     def mean_and_amplitude(self, m):
-        """ Computes the mean of the envelopes and the mode amplitudes."""
+        """ Compute the mean of the envelopes and the mode amplitudes.
+
+        Parameters
+        ----------
+        m : array-like, shape (n_samples,)
+            The input array or an itermediate value of the sifting process.
+
+        Returns
+        -------
+        tuple
+            A tuple containing the mean of the envelopes, the number of
+            extrema, the number of zero crosssing and the estimate of the
+            amplitude of themode.
+        """
         # FIXME: The spline interpolation may not be identical with the MATLAB
         # implementation. Needs further investigation.
         if self.is_bivariate:
@@ -213,8 +258,8 @@ class EmpiricalModeDecomposition(object):
                     nem.append(len(indmin) + len(indmax))
                     nzm.append(len(indzer))
                     if self.nbsym:
-                        tmin, tmax, zmin, zmax = boundary_conditions(y, self.t,
-                                                                     m, self.nbsym)
+                        tmin, tmax, zmin, zmax = boundary_conditions(
+                            y, self.t, m, self.nbsym)
                     else:
                         tmin = np.r_[self.t[0], self.t[indmin], self.t[-1]]
                         tmax = np.r_[self.t[0], self.t[indmax], self.t[-1]]
@@ -243,8 +288,8 @@ class EmpiricalModeDecomposition(object):
                     nem.append(len(indmin) + len(indmax))
                     nzm.append(len(indzer))
                     if self.nbsym:
-                        tmin, tmax, zmin, zmax = boundary_conditions(y, self.t,
-                                                                     m, self.nbsym)
+                        tmin, tmax, zmin, zmax = boundary_conditions(
+                            y, self.t, m, self.nbsym)
                     else:
                         tmin = np.r_[self.t[0], self.t[indmin], self.t[-1]]
                         tmax = np.r_[self.t[0], self.t[indmax], self.t[-1]]
@@ -289,8 +334,17 @@ class EmpiricalModeDecomposition(object):
     def stop_sifting(self, m):
         """Evaluate the stopping criteria for the current mode.
 
-        :param m: The current mode
-        :type m: array-like
+        Parameters
+        ----------
+        m : array-like, shape (n_samples,)
+            The current mode.
+
+        Returns
+        -------
+        bool
+            Whether to stop sifting. If this evaluates to true, the current
+            mode is interpreted as an IMF.
+
         """
         # FIXME: This method needs a better name.
         if self.fixe:
@@ -339,8 +393,14 @@ class EmpiricalModeDecomposition(object):
 
         This function does all the heavy lifting required for sifting, and
         should ideally be the only public method of this class.
-        :Example:
 
+        Returns
+        -------
+        imfs : array-like, shape (n_imfs, n_samples)
+            A matrix containing one IMF per row.
+
+        Examples
+        --------
         >>> from pyhht.visualization import plot_imfs
         >>> import numpy as np
         >>> t = np.linspace(0, 1, 1000)
@@ -360,20 +420,24 @@ class EmpiricalModeDecomposition(object):
             # in case current mode is small enough to cause spurious extrema
             if np.max(np.abs(m)) < (1e-10) * np.max(np.abs(self.x)):
                 if not stop_sift:
-                    warnings.warn("EMD Warning: Amplitude too small, stopping.")
+                    warnings.warn(
+                        "EMD Warning: Amplitude too small, stopping.")
                 else:
                     print("Force stopping EMD: amplitude too small.")
                 return
 
             # SIFTING LOOP:
             while not(stop_sift) and (self.nbit < self.maxiter):
-
-                if (not(self.is_bivariate) and (self.nbit > self.maxiter / 5) and
-                        self.nbit % np.floor(self.maxiter / 10) == 0 and
-                        not(self.fixe) and self.nbit > 100):
-                    print("Mode " + str(self.k) + ", Iteration " + str(self.nbit))
-                    im, iM, _ = extr(m)
-                    print(str(np.sum(m[im] > 0)) + " minima > 0; " + str(np.sum(m[im] < 0)) + " maxima < 0.")
+                # The following should be controlled by a verbosity parameter.
+                # if (not(self.is_bivariate) and
+                #     (self.nbit > self.maxiter / 5) and
+                #     self.nbit % np.floor(self.maxiter / 10) == 0 and
+                #     not(self.fixe) and self.nbit > 100):
+                #     print("Mode " + str(self.k) +
+                #           ", Iteration " + str(self.nbit))
+                #     im, iM, _ = extr(m)
+                #     print(str(np.sum(m[im] > 0)) + " minima > 0; " +
+                #           str(np.sum(m[im] < 0)) + " maxima < 0.")
 
                 # Sifting
                 m = m - moyenne
@@ -384,13 +448,17 @@ class EmpiricalModeDecomposition(object):
                 self.nbit += 1
                 self.NbIt += 1
 
-                if (self.nbit == (self.maxiter - 1)) and not(self.fixe) and (self.nbit > 100):
-                    warnings.warn("Emd:warning, Forced stop of sifting - " +
-                                  "Maximum iteration limit reached.")
+                # This following warning depends on verbosity and needs better
+                # handling
+                # if not self.fixe and self.nbit > 100(self.nbit ==
+                # (self.maxiter - 1)) and not(self.fixe) and (self.nbit > 100):
+                #     warnings.warn("Emd:warning, Forced stop of sifting - " +
+                #                   "Maximum iteration limit reached.")
 
             self.imf.append(m)
 
             self.nbits.append(self.nbit)
+            self.nbit = 0
             self.k += 1
 
             self.residue = self.residue - m
