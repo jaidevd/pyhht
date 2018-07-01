@@ -8,3 +8,5 @@ nose
 six
 # examples
 -e git+http://github.com/scikit-signal/pytftb#egg=pytftb
+# readthedocs
+numpydoc
