@@ -31,13 +31,13 @@ class EmpiricalModeDecomposition(object):
             The timestamps of the signal.
         threshold_1 : float, optional
             Threshold for the stopping criterion, corresponding to
-            :math:`\theta_{1}` in [1]. Defaults to 0.05.
+            :math:`\\theta_{1}` in [1]. Defaults to 0.05.
         threshold_2 : float, optional
             Threshold for the stopping criterion, corresponding to
-            :math:`\theta_{2}` in [1]. Defaults to 0.5.
+            :math:`\\theta_{2}` in [1]. Defaults to 0.5.
         alpha : float, optional
             Tolerance for the stopping criterion, corresponding to
-            :math:`\alpha` in [1]. Defaults to 0.05.
+            :math:`\\alpha` in [1]. Defaults to 0.05.
         ndirs : int, optional
             Number of directions in which interpolants for envelopes are
             computed for bivariate EMD. Defaults to 4. This is ignored if the

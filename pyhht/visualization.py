@@ -77,7 +77,6 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None, show=True):
 
     # Plot the IMFs
     for i in range(n_imfs - 1):
-        print(i + 2)
         ax = plt.subplot(n_imfs + 1, 1, i + 2)
         if is_bivariate:
             ax.plot(time_samples, np.real(imfs[i]), 'b')
