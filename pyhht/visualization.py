@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+
 def plot_imfs(signal, imfs, time_samples=None, fignum=None, show=True):
     """
     Plot the signal, IMFs and residue.
@@ -72,7 +73,8 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None, show=True):
     ax.tick_params(which='both', left=False, bottom=False, labelleft=False,
                    labelbottom=False)
     ax.grid(False)
-    ax.set_ylabel('Signal')
+    ax.set_ylabel('Signal',rotation=0)
+    ax.yaxis.set_label_coords(-0.1,0)
     ax.set_title('Empirical Mode Decomposition')
 
     # Plot the IMFs
@@ -87,7 +89,8 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None, show=True):
         ax.tick_params(which='both', left=False, bottom=False, labelleft=False,
                        labelbottom=False)
         ax.grid(False)
-        ax.set_ylabel('imf' + str(i + 1))
+        ax.set_ylabel('imf_' + str(i + 1),rotation=0)
+        ax.yaxis.set_label_coords(-0.1,0)
 
     # Plot the residue
     ax = plt.subplot(n_imfs + 1, 1, n_imfs + 1)
@@ -100,7 +103,8 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None, show=True):
     ax.tick_params(which='both', left=False, bottom=False, labelleft=False,
                    labelbottom=False)
     ax.grid(False)
-    ax.set_ylabel('res.')
+    ax.set_ylabel('res.',rotation=0)
+    ax.yaxis.set_label_coords(-0.1,0)
 
     if show:  # pragma: no cover
         plt.show()
