@@ -31,13 +31,13 @@ class EmpiricalModeDecomposition(object):
             The timestamps of the signal.
         threshold_1 : float, optional
             Threshold for the stopping criterion, corresponding to
-            :math:`\\theta_{1}` in [1]. Defaults to 0.05.
+            :math:`\\theta_{1}` in [3]. Defaults to 0.05.
         threshold_2 : float, optional
             Threshold for the stopping criterion, corresponding to
-            :math:`\\theta_{2}` in [1]. Defaults to 0.5.
+            :math:`\\theta_{2}` in [3]. Defaults to 0.5.
         alpha : float, optional
             Tolerance for the stopping criterion, corresponding to
-            :math:`\\alpha` in [1]. Defaults to 0.05.
+            :math:`\\alpha` in [3]. Defaults to 0.05.
         ndirs : int, optional
             Number of directions in which interpolants for envelopes are
             computed for bivariate EMD. Defaults to 4. This is ignored if the
@@ -84,9 +84,10 @@ class EmpiricalModeDecomposition(object):
                 function for empirical mode decomposition method'. \
                 Journal of Zhejiang University (Science) V.2, No.3, 247-252
 
-        .. [3] Rato R.T., Ortigueira M.D., Batista A.G 2008 'On the HHT, its \
-                problems, and some solutions.' \
-                Mechanical Systems and Signal Processing 22 1374-1394
+        .. [3] Gabriel Rilling, Patrick Flandrin, Paulo Gonçalves, June 2003: \
+                'On Empirical Mode Decomposition and its Algorithms',\
+                IEEE-EURASIP Workshop on Nonlinear Signal and Image Processing \
+                NSIP-03
 
         .. [4] Gabriel Rilling, Patrick Flandrin, Paulo Gonçalves, \
                 Jonathan M. Lilly. Bivariate Empirical Mode Decomposition. \
