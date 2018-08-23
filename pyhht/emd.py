@@ -88,11 +88,10 @@ class EmpiricalModeDecomposition(object):
                 problems, and some solutions.' \
                 Mechanical Systems and Signal Processing 22 1374-1394
 
-        .. [4] Rilling, Gabriel, Patrick Flandrin, and Paulo Goncalves. \
-                "On empirical mode decomposition and its algorithms." \
-                IEEE-EURASIP workshop on nonlinear signal \
-                and image processing. \
-                Vol. 3. NSIP-03, Grado (I), 2003.
+        .. [4] Gabriel Rilling, Patrick Flandrin, Paulo Gonçalves, \
+                Jonathan M. Lilly. Bivariate Empirical Mode Decomposition. \
+                10 pages, 3 figures. Submitted to Signal Processing Letters, \
+                IEEE. Matlab/C codes and additional .. 2007. <ensl-00137611>
 
         Examples
         --------
