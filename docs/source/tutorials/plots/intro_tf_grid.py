@@ -13,8 +13,9 @@ h += 1 - np.remainder(h, 2)
 
 
 def make_window(wlength):
-    w = hamming(wlength)
+    w = hamming(int(wlength))
     return w / np.linalg.norm(w)
+
 
 fig, axes = plt.subplots(nrows=6, ncols=6, figsize=(12, 12),
                          subplot_kw={'xticks': [], 'yticks': []})

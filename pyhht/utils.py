@@ -15,23 +15,26 @@ from scipy.signal import argrelmax, argrelmin
 from scipy import interpolate, angle
 
 
-def inst_freq(x, t=None, L=1):
+def inst_freq(x, t=None):
     """
-    Compute the instantaneous frequency of an analytic signal at specific
-    time instants using the trapezoidal integration rule.
+    Compute the instantaneous frequency of an analytic signal at specific time
+    instants using the trapezoidal integration rule.
 
-    :param x: The input analytic signal
-    :param t: The time instants at which to calculate the instantaneous frequencies.
-    :param L: Non default values are currently not supported.
-        If L is 1, the normalized instantaneous frequency is computed. If L > 1,
-        the maximum likelihood estimate of the instantaneous frequency of the
-        deterministic part of the signal.
-    :type x: numpy.ndarray
-    :type t: numpy.ndarray
-    :type L: int
-    :return: instantaneous frequencies of the input signal.
-    :rtype: numpy.ndarray
-    :Example:
+    Parameters
+    ----------
+    x : array-like, shape (n_samples,)
+        The input analytic signal.
+    t : array-like, shape (n_samples,), optional
+        The time instants at which to calculate the instantaneous frequency.
+        Defaults to `np.arange(2, n_samples)`
+
+    Returns
+    -------
+    array-like
+        Normalized instantaneous frequencies of the input signal
+
+    Examples
+    --------
     >>> from tftb.generators import fmsin
     >>> import matplotlib.pyplot as plt
     >>> x = fmsin(70, 0.05, 0.35, 25)[0]
@@ -39,6 +42,7 @@ def inst_freq(x, t=None, L=1):
     >>> plt.plot(timestamps, instf) #doctest: +SKIP
 
     .. plot:: docstring_plots/utils/inst_freq.py
+
     """
     if x.ndim != 1:
         if 1 not in x.shape:
@@ -61,26 +65,45 @@ def inst_freq(x, t=None, L=1):
 
 def boundary_conditions(signal, time_samples, z=None, nbsym=2):
     """
-    Extend the signal beyond it's bounds w.r.t mirror symmetry.
+    Extend a 1D signal by mirroring its extrema on either side.
 
-    :param x: Signal to be mirrored.
-    :param t: Timestamps of the signal
-    :param z: Signal on whose extrema the interpolation is evaluated. (By \
-        default this is just ``x``)
-    :param nbsym: Number of points added to each end of the signal.
-    :type x: array-like
-    :type t: array-like
-    :type z: array-like
-    :type nbsym: int
-    :return: timestamps and values of extended extrema, ordered as (minima \
-        timestamps, maxima timestamps, minima values, maxima values.)
-    :rtype: tuple
-    :Example:
+    Parameters
+    ----------
+    signal : array-like, shape (n_samples,)
+        The input signal.
+    time_samples : array-like, shape (n_samples,)
+        Timestamps of the signal samples
+    z : array-like, shape (n_samples,), optional
+        A proxy signal on whose extrema the interpolation is evaluated.
+        Defaults to `signal`.
+    nbsym : int, optional
+        The number of extrema to consider on either side of the signal.
+        Defaults to 2
+
+    Returns
+    -------
+    tuple
+        A tuple of four arrays which represent timestamps of the minima of the
+        extended signal, timestamps of the maxima of the extended signal,
+        minima of the extended signal and maxima of the extended signal.
+        signal, minima of the extended signal and maxima of the extended
+        signal.
+
+    Examples
+    --------
     >>> from __future__ import print_function
     >>> import numpy as np
     >>> signal = np.array([-1, 1, -1, 1, -1])
-    >>> print(boundary_conditions(signal, np.arange(5)))
-    (array([-2,  2,  6]), array([-3, -1,  1,  3,  5,  7]), array([-1, -1, -1]), array([1, 1, 1, 1, 1, 1]))
+    >>> tmin, tmax, vmin, vmax = boundary_conditions(signal, np.arange(5))
+    >>> tmin
+    array([-2,  2,  6])
+    >>> tmax
+    array([-3, -1,  1,  3,  5,  7])
+    >>> vmin
+    array([-1, -1, -1])
+    >>> vmax
+    array([1, 1, 1, 1, 1, 1])
+
     """
     tmax = argrelmax(signal)[0]
     maxima = signal[tmax]
@@ -92,23 +115,42 @@ def boundary_conditions(signal, time_samples, z=None, nbsym=2):
 
     loffset_max = time_samples[tmax[:nbsym]] - time_samples[0]
     roffset_max = time_samples[-1] - time_samples[tmax[-nbsym:]]
-    new_tmax = np.r_[time_samples[0] - loffset_max[::-1], time_samples[tmax], roffset_max[::-1] + time_samples[-1]]
+    new_tmax = np.r_[time_samples[0] - loffset_max[::-1],
+                     time_samples[tmax], roffset_max[::-1] + time_samples[-1]]
     new_vmax = np.r_[maxima[:nbsym][::-1], maxima, maxima[-nbsym:][::-1]]
 
     loffset_min = time_samples[tmin[:nbsym]] - time_samples[0]
     roffset_min = time_samples[-1] - time_samples[tmin[-nbsym:]]
 
-    new_tmin = np.r_[time_samples[0] - loffset_min[::-1], time_samples[tmin], roffset_min[::-1] + time_samples[-1]]
+    new_tmin = np.r_[time_samples[0] - loffset_min[::-1],
+                     time_samples[tmin], roffset_min[::-1] + time_samples[-1]]
     new_vmin = np.r_[minima[:nbsym][::-1], minima, minima[-nbsym:][::-1]]
     return new_tmin, new_tmax, new_vmin, new_vmax
 
 
 def get_envelops(x, t=None):
-    """ Find the upper and lower envelopes of the array `x`.
-    :Example:
+    """
+    Get the upper and lower envelopes of an array, as defined by its extrema.
+
+    Parameters
+    ----------
+    x : array-like, shape (n_samples,)
+        The input array.
+    t : array-like, shape (n_samples,), optional
+        Timestamps of the signal. Defaults to `np.arange(n_samples,)`
+
+    Returns
+    -------
+    tuple
+        A tuple of arrays representing the upper and the lower envelopes
+        respectively.
+
+    Examples
+    --------
     >>> import numpy as np
     >>> x = np.random.rand(100,)
     >>> upper, lower = get_envelops(x)
+
     """
     if t is None:
         t = np.arange(x.shape[0])
@@ -135,13 +177,22 @@ def get_envelops(x, t=None):
 
 
 def extr(x):
-    """Extract the indices of the extrema and zero crossings.
+    """
+    Extract the indices of the extrema and zero crossings.
 
-    :param x: input signal
-    :type x: array-like
-    :return: indices of minima, maxima and zero crossings.
-    :rtype: tuple
-    :Example:
+    Parameters
+    ----------
+    x : array-like, shape (n_samples,)
+        Input signal.
+
+    Returns
+    -------
+    tuple
+        A tuple of three arrays representing the minima, maxima and zero
+        crossings of the signal respectively.
+
+    Examples
+    --------
     >>> from __future__ import print_function
     >>> import numpy as np
     >>> x = np.array([0, -2, 0, 1, 3, 0.5, 0, -1, -1])
@@ -152,6 +203,7 @@ def extr(x):
     [4]
     >>> print(indzer)
     [0 2 6]
+
     """
     m = x.shape[0]
 
