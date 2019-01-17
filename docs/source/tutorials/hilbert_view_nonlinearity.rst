@@ -108,8 +108,8 @@ bounded by unity. Gaussian functions satisfy the equality condition in the
 equation. This can be verified as follows::
 
     >>> from tftb.generators import fmconst, amgauss
-    >>> x = gen.amgauss(128) * gen.fmconst(128)[0]
-    >>> plot(real(x))
+    >>> x = amgauss(128) * fmconst(128)[0]
+    >>> plt.plot(np.real(x))
 
 .. plot::
 
