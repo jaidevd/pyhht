@@ -105,7 +105,7 @@ class EmpiricalModeDecomposition(object):
         >>> imfs = decomposer.decompose()
         >>> plot_imfs(x, imfs, t) #doctest: +SKIP
 
-        .. plot:: ../../docs/examples/simple_emd.py
+        .. plot:: examples/simple_emd.py
 
         """
 
