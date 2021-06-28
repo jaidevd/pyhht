@@ -63,3 +63,4 @@ target/
 .noseids
 cover/
 result_images/
+docs/apiref/

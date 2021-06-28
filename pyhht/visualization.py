@@ -49,7 +49,7 @@ def plot_imfs(signal, imfs, time_samples=None, fignum=None, show=True):
     >>> imfs = decomposer.decompose()
     >>> plot_imfs(x, imfs, t) #doctest: +SKIP
 
-    .. plot:: ../../docs/examples/simple_emd.py
+    .. plot:: examples/simple_emd.py
 
     """
     is_bivariate = np.any(np.iscomplex(signal))

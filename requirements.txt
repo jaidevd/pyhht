@@ -7,6 +7,6 @@ coveralls
 nose
 six
 # examples
--e git+http://github.com/scikit-signal/pytftb#egg=pytftb
+tftb==0.1.3
 # readthedocs
 numpydoc
