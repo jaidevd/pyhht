@@ -12,7 +12,7 @@ Utility functions used to inspect EMD functionality.
 
 import numpy as np
 from scipy.signal import argrelmax, argrelmin
-from scipy import interpolate, angle
+from scipy import interpolate
 
 
 def inst_freq(x, t=None):
@@ -59,7 +59,7 @@ def inst_freq(x, t=None):
     else:
         t = np.arange(2, len(x))
 
-    fnorm = 0.5 * (angle(-x[t] * np.conj(x[t - 2])) + np.pi) / (2 * np.pi)
+    fnorm = 0.5 * (np.angle(-x[t] * np.conj(x[t - 2])) + np.pi) / (2 * np.pi)
     return fnorm, t
 
 
